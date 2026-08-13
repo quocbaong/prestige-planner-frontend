@@ -18,7 +18,11 @@ import {
   ChevronRight,
   AlertTriangle,
   X,
-  MessageSquare
+  MessageSquare,
+  UserPlus,
+  Shield,
+  Lock,
+  Building2
 } from 'lucide-react';
 import StatCard from '../components/ui/StatCard';
 
@@ -186,6 +190,48 @@ const GuestsPage = () => {
   const [messageBody, setMessageBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  // Create User State (Admin Permission Feature)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [newUserForm, setNewUserForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    password: '',
+    role: 'ATTENDEE',
+    company: ''
+  });
+
+  const handleCreateUserSubmit = (e) => {
+    e.preventDefault();
+    if (!newUserForm.name || !newUserForm.email || !newUserForm.password) {
+      showToast('Vui lòng điền đầy đủ các thông tin bắt buộc!', 'error');
+      return;
+    }
+
+    const newGuest = {
+      id: Date.now(),
+      name: newUserForm.name,
+      email: newUserForm.email,
+      phone: newUserForm.phone || 'Chưa cập nhật',
+      joinedDate: new Date().toLocaleDateString('vi-VN'),
+      totalSpent: '0đ',
+      ticketsCount: 0,
+      status: 'Hoạt động',
+      role: newUserForm.role,
+      preferredCategory: 'Công nghệ',
+      recentEvent: 'Vừa được cấp tài khoản',
+      ticketType: newUserForm.role === 'ADMIN' ? 'ADMIN' : 'Thường',
+      avatar: null
+    };
+
+    setGuests(prev => [newGuest, ...prev]);
+    setIsCreateModalOpen(false);
+    setNewUserForm({ name: '', email: '', phone: '', password: '', role: 'ATTENDEE', company: '' });
+
+    const roleName = newUserForm.role === 'ADMIN' ? 'Quản trị viên (ADMIN)' : newUserForm.role === 'ORGANIZER' ? 'Nhà tổ chức' : 'Khách tham dự';
+    showToast(`Tạo thành công tài khoản ${roleName} cho ${newGuest.name}!`, 'success');
+  };
+
   // Toast State
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
 
@@ -332,16 +378,23 @@ const GuestsPage = () => {
       {/* Header Panel */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Quản lý Khách mời hệ thống</h1>
-          <p className="text-slate-500 max-w-2xl font-medium">Giám sát, phân tích chi tiết, cập nhật trạng thái và hỗ trợ tất cả người tham dự sự kiện trên toàn bộ nền tảng.</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Quản lý Người dùng & Khách mời</h1>
+          <p className="text-slate-500 max-w-2xl font-medium">Giám sát, phân quyền người dùng (Admin, Nhà tổ chức, Khách tham dự), cấp tài khoản và hỗ trợ toàn bộ nền tảng.</p>
         </div>
-        <div>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-5 py-3 rounded-full font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all cursor-pointer active:scale-95 duration-200"
+          >
+            <UserPlus className="w-5 h-5 text-white" />
+            Tạo tài khoản mới
+          </button>
           <button 
             onClick={handleExport}
-            className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-bold border-none shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 cursor-pointer"
+            className="flex items-center gap-2 bg-white text-slate-700 border border-slate-200 px-5 py-3 rounded-full font-bold shadow-sm hover:bg-slate-50 transition-all active:scale-95 duration-200 cursor-pointer"
           >
-            <Download className="w-5 h-5 text-white" />
-            Xuất dữ liệu hệ thống (CSV)
+            <Download className="w-5 h-5 text-slate-500" />
+            Xuất CSV
           </button>
         </div>
       </div>
@@ -848,6 +901,145 @@ const GuestsPage = () => {
                   Xác nhận
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal: Admin Create User (Role-Based Account Creation) */}
+      <AnimatePresence>
+        {isCreateModalOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCreateModalOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+              animate={{ opacity: 1, scale: 1, y: 0 }} 
+              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+              className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <form onSubmit={handleCreateUserSubmit}>
+                <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                      <UserPlus className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-black text-slate-900 tracking-tight">Tạo tài khoản hệ thống</h2>
+                      <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest">Được phân quyền bởi Admin</p>
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setIsCreateModalOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 transition-all">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="p-8 space-y-4 max-h-[70vh] overflow-y-auto">
+                  {/* Select Role */}
+                  <div>
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block mb-2">Chọn Vai trò (Role)</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'ATTENDEE', label: 'Khách', desc: 'Tham dự sự kiện', color: 'indigo' },
+                        { id: 'ORGANIZER', label: 'Nhà tổ chức', desc: 'Quản lý sự kiện', color: 'emerald' },
+                        { id: 'ADMIN', label: 'Admin', desc: 'Toàn quyền', color: 'purple' },
+                      ].map((r) => (
+                        <button
+                          key={r.id}
+                          type="button"
+                          onClick={() => setNewUserForm(prev => ({ ...prev, role: r.id }))}
+                          className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                            newUserForm.role === r.id 
+                              ? 'border-indigo-600 bg-indigo-50/60 ring-2 ring-indigo-500/20' 
+                              : 'border-slate-200 bg-white hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-bold text-xs text-slate-900">{r.label}</span>
+                            {r.id === 'ADMIN' && <Shield className="w-3.5 h-3.5 text-purple-600" />}
+                          </div>
+                          <p className="text-[10px] text-slate-400 font-medium">{r.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Full Name */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Họ và Tên *</label>
+                    <input 
+                      required 
+                      type="text" 
+                      value={newUserForm.name} 
+                      onChange={e => setNewUserForm(prev => ({ ...prev, name: e.target.value }))} 
+                      placeholder="Nguyễn Văn A" 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none" 
+                    />
+                  </div>
+
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Email *</label>
+                    <input 
+                      required 
+                      type="email" 
+                      value={newUserForm.email} 
+                      onChange={e => setNewUserForm(prev => ({ ...prev, email: e.target.value }))} 
+                      placeholder="user@prestige-planner.com" 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none" 
+                    />
+                  </div>
+
+                  {/* Password */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Mật khẩu ban đầu *</label>
+                    <input 
+                      required 
+                      type="password" 
+                      value={newUserForm.password} 
+                      onChange={e => setNewUserForm(prev => ({ ...prev, password: e.target.value }))} 
+                      placeholder="••••••••" 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none" 
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Số điện thoại</label>
+                    <input 
+                      type="text" 
+                      value={newUserForm.phone} 
+                      onChange={e => setNewUserForm(prev => ({ ...prev, phone: e.target.value }))} 
+                      placeholder="0912345678" 
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none" 
+                    />
+                  </div>
+
+                  {/* Company Name if Organizer */}
+                  {newUserForm.role === 'ORGANIZER' && (
+                    <div className="space-y-1.5 animate-in fade-in">
+                      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tên Công ty / Tổ chức</label>
+                      <input 
+                        type="text" 
+                        value={newUserForm.company} 
+                        onChange={e => setNewUserForm(prev => ({ ...prev, company: e.target.value }))} 
+                        placeholder="Công ty TNHH Sự kiện Việt" 
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none" 
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-6 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                  <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 transition-all rounded-xl cursor-pointer">Hủy</button>
+                  <button 
+                    type="submit" 
+                    className="px-7 py-3 bg-indigo-600 text-white font-black text-sm rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2 cursor-pointer"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    Cấp tài khoản ngay
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

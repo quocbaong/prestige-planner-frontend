@@ -14,8 +14,27 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   
-  const { login } = useAuth();
+  const { login, loginAsDemo } = useAuth();
   const navigate = useNavigate();
+
+  const handleDemoLogin = async (role) => {
+    setError('');
+    setIsSubmitting(true);
+    try {
+      const user = await loginAsDemo(role);
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else if (user.role === 'ORGANIZER') {
+        navigate('/organizer/dashboard');
+      } else {
+        navigate('/attendee/dashboard');
+      }
+    } catch (err) {
+      setError(err || 'Đăng nhập Demo thất bại.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -92,24 +111,58 @@ const LoginPage = () => {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 sm:p-12 lg:p-20 xl:p-32 bg-white overflow-hidden font-sans">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-8 lg:p-10 xl:p-12 bg-white overflow-y-auto font-sans h-full">
 
-        <div className="w-full max-w-[440px] animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-3 tracking-tight">Chào mừng trở lại</h2>
-            <p className="text-lg text-gray-500 font-medium">Đăng nhập để quản lý tầm nhìn của bạn.</p>
+        <div className="w-full max-w-[420px] my-auto py-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="mb-6">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2 tracking-tight">Chào mừng trở lại</h2>
+            <p className="text-base text-gray-500 font-medium">Đăng nhập để quản lý tầm nhìn của bạn.</p>
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
+            <div className="mb-4 p-3.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-sm font-medium animate-in fade-in slide-in-from-top-2">
               {error}
             </div>
           )}
 
+          {/* Quick Demo Logins */}
+          <div className="mb-5 p-3.5 bg-indigo-50/80 border border-indigo-100/80 rounded-xl shadow-sm">
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[11px] font-bold text-indigo-900 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+                Đăng nhập nhanh Demo
+              </span>
+              <span className="text-[9px] bg-indigo-200/60 text-indigo-800 font-bold px-2 py-0.5 rounded-full">DEV MODE</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('ADMIN')}
+                className="py-2 px-2.5 bg-white border border-indigo-200 hover:border-indigo-600 hover:bg-indigo-600 hover:text-white text-indigo-800 font-bold rounded-lg text-xs transition-all duration-200 shadow-sm flex items-center justify-center gap-1 active:scale-95 cursor-pointer"
+              >
+                <span>👑</span> Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('ORGANIZER')}
+                className="py-2 px-2.5 bg-white border border-indigo-200 hover:border-indigo-600 hover:bg-indigo-600 hover:text-white text-indigo-800 font-bold rounded-lg text-xs transition-all duration-200 shadow-sm flex items-center justify-center gap-1 active:scale-95 cursor-pointer"
+              >
+                <span>👔</span> Organizer
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('ATTENDEE')}
+                className="py-2 px-2.5 bg-white border border-indigo-200 hover:border-indigo-600 hover:bg-indigo-600 hover:text-white text-indigo-800 font-bold rounded-lg text-xs transition-all duration-200 shadow-sm flex items-center justify-center gap-1 active:scale-95 cursor-pointer"
+              >
+                <span>👤</span> Attendee
+              </button>
+            </div>
+          </div>
+
           {/* Social Logins */}
-          <div className="flex gap-4 mb-10">
-            <button className="flex-1 flex items-center justify-center gap-3 py-4 px-4 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-gray-100 hover:border-gray-200 transition-all duration-300 font-bold text-gray-700 shadow-sm active:scale-[0.98]">
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+          <div className="flex gap-3 mb-5">
+            <button className="flex-1 flex items-center justify-center gap-2.5 py-3 px-3 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 hover:border-gray-200 transition-all duration-300 font-bold text-sm text-gray-700 shadow-sm active:scale-[0.98]">
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
@@ -117,32 +170,32 @@ const LoginPage = () => {
               </svg>
               Google
             </button>
-            <button className="flex-1 flex items-center justify-center gap-3 py-4 px-4 bg-gray-50 border border-gray-100 rounded-2xl hover:bg-gray-100 hover:border-gray-200 transition-all duration-300 font-bold text-gray-700 shadow-sm active:scale-[0.98]">
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <button className="flex-1 flex items-center justify-center gap-2.5 py-3 px-3 bg-gray-50 border border-gray-100 rounded-xl hover:bg-gray-100 hover:border-gray-200 transition-all duration-300 font-bold text-sm text-gray-700 shadow-sm active:scale-[0.98]">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M17.05 20.28c-.96.95-2.14 1.72-3.4 2.13-1.2.39-2.48.59-3.76.59-1.33 0-2.66-.23-3.92-.68-1.28-.46-2.44-1.18-3.41-2.12-1.95-1.89-3.05-4.56-3.04-7.34 0-2.82 1.08-5.46 3.01-7.41 1.94-1.95 4.54-3.03 7.33-3.03 1.15 0 2.29.18 3.36.54 1.05.35 2.01.88 2.86 1.57.8.65 1.45 1.47 1.91 2.4.49.98.74 2.06.74 3.16 0 1.9-.71 3.69-2.01 5.07-.46.49-1 .89-1.6 1.18-.57.27-1.18.41-1.8.41-.64 0-1.26-.14-1.82-.42-.51-.25-.97-.61-1.34-1.04-.37.43-.84.79-1.36 1.04-.56.28-1.18.42-1.81.42s-1.25-.14-1.81-.42c-.51-.25-.97-.61-1.34-1.04-1.4 1.48-2.17 3.44-2.17 5.48 0 2.06.78 4.02 2.19 5.51 1.41 1.48 3.33 2.3 5.37 2.3 1.46 0 2.87-.41 4.09-1.19a8.62 8.62 0 0 0 3.01-3.23l1.83.91zM11.91 1.44c.04 0 .09 0 .14.01-.15.82-.48 1.6-.96 2.29-.48.69-1.12 1.25-1.86 1.63-.74.39-1.57.59-2.42.59-.04 0-.08 0-.13-.01.16-.84.5-1.62.99-2.3.49-.69 1.14-1.25 1.9-1.63.75-.38 1.59-.58 2.44-.58z"/>
               </svg>
               Apple
             </button>
           </div>
 
-          <div className="relative mb-10 text-center">
+          <div className="relative mb-5 text-center">
             <div className="absolute inset-x-0 top-1/2 h-px bg-gray-100"></div>
-            <span className="relative bg-white px-6 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">hoặc với email</span>
+            <span className="relative bg-white px-4 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">hoặc với email</span>
           </div>
 
-          <form className="space-y-8" onSubmit={handleSubmit}>
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="group">
-              <label className="block text-sm font-bold text-gray-700 mb-2.5 ml-1" htmlFor="email">Địa chỉ Email</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 ml-1" htmlFor="email">Địa chỉ Email</label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
                   <input 
                     type="email" 
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-14 pr-5 py-4.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium placeholder-gray-400"
+                    className="block w-full pl-11 pr-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium text-sm placeholder-gray-400"
                     placeholder="name@company.com"
                     required
                   />
@@ -150,49 +203,48 @@ const LoginPage = () => {
             </div>
 
             <div className="group">
-              <div className="flex justify-between mb-2.5 px-1">
-                <label className="text-sm font-bold text-gray-700" htmlFor="password">Mật khẩu</label>
-                <button type="button" onClick={() => setShowForgotModal(true)} className="text-sm font-bold text-indigo-600 hover:text-indigo-700 transition-colors">Quên mật khẩu?</button>
+              <div className="flex justify-between mb-1.5 px-1">
+                <label className="text-xs font-bold text-gray-700" htmlFor="password">Mật khẩu</label>
+                <button type="button" onClick={() => setShowForgotModal(true)} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors">Quên mật khẩu?</button>
               </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
                   <input 
                     type={showPassword ? 'text' : 'password'}
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full pl-14 pr-14 py-4.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium placeholder-gray-400"
+                    className="block w-full pl-11 pr-11 py-3 bg-gray-50 border-2 border-transparent rounded-xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium text-sm placeholder-gray-400"
                     placeholder="••••••••"
                     required
                   />
                 <button 
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center group cursor-pointer" onClick={() => setRememberMe(!rememberMe)}>
-              <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${rememberMe ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-gray-50 border-gray-200'}`}>
-                {rememberMe && <Check className="w-4 h-4 text-white" strokeWidth={4} />}
+              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${rememberMe ? 'bg-indigo-600 border-indigo-600 shadow-sm shadow-indigo-200' : 'bg-gray-50 border-gray-200'}`}>
+                {rememberMe && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
               </div>
-              <span className="ml-3 text-base font-semibold text-gray-600 select-none">Ghi nhớ tôi trong 30 ngày</span>
+              <span className="ml-2.5 text-xs font-semibold text-gray-600 select-none">Ghi nhớ tôi trong 30 ngày</span>
             </div>
-
 
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full bg-indigo-600 text-white py-5 px-6 rounded-2xl font-bold text-lg hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-500/30 active:scale-[0.98] transition-all duration-300 transform flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full bg-indigo-600 text-white py-3.5 px-5 rounded-xl font-bold text-sm hover:bg-indigo-700 hover:shadow-xl hover:shadow-indigo-500/20 active:scale-[0.98] transition-all duration-300 transform flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="w-6 h-6 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   Đang xử lý...
                 </>
               ) : (
@@ -201,13 +253,13 @@ const LoginPage = () => {
             </button>
           </form>
 
-          <p className="mt-12 text-center text-base text-gray-500 font-medium">
+          <p className="mt-5 text-center text-xs text-gray-500 font-medium">
             Chưa có tài khoản? {' '}
             <button 
               onClick={() => navigate('/signup')} 
-              className="font-bold text-indigo-600 hover:text-indigo-800 underline underline-offset-4 decoration-2 decoration-indigo-100 hover:decoration-indigo-600 transition-all"
+              className="font-bold text-indigo-600 hover:text-indigo-800 underline underline-offset-4 decoration-2 decoration-indigo-100 hover:decoration-indigo-600 transition-all cursor-pointer"
             >
-              Tạo tài khoản tổ chức sự kiện của bạn
+              Tạo tài khoản tổ chức sự kiện
             </button>
           </p>
         </div>
