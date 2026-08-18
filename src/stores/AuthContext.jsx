@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../lib/axios';
+import api, { clearSession } from '../lib/axios';
 
 const AuthContext = createContext(null);
 
@@ -46,9 +46,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      clearSession();
       setUser(null);
     }
   };

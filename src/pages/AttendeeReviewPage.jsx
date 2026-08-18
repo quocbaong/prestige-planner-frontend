@@ -20,8 +20,8 @@ const AttendeeReviewPage = () => {
     try {
       setLoading(true);
       const [eventsRes, reviewsRes] = await Promise.all([
-        axios.get('/api/v1/attendee/reviews/events'),
-        axios.get('/api/v1/attendee/reviews')
+        axios.get('/attendee/reviews/events'),
+        axios.get('/attendee/reviews')
       ]);
 
       const reviewableEvents = eventsRes.data || [];
@@ -80,7 +80,7 @@ const AttendeeReviewPage = () => {
 
     try {
       setSubmitting(true);
-      const res = await axios.post('/api/v1/attendee/reviews', {
+      const res = await axios.post('/attendee/reviews', {
         eventId: selectedEvent.eventId,
         rating: rating,
         comment: combinedComment

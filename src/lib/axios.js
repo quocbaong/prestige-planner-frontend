@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+const configuredGatewayUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const gatewayUrl = configuredGatewayUrl.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1',
+  baseURL: `${gatewayUrl}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
     'ngrok-skip-browser-warning': 'true',
@@ -9,49 +12,59 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Request interceptor to add JWT token
+let refreshPromise = null;
+
+export const clearSession = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+};
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    config.headers['X-Correlation-Id'] = crypto.randomUUID();
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const correlationId = error.response?.headers?.['x-correlation-id'];
+    if (correlationId) error.correlationId = correlationId;
+    const requestUrl = originalRequest?.url || '';
+    const isAuthRequest = requestUrl.includes('/auth/');
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;
-      
+
       try {
         const refreshToken = localStorage.getItem('refreshToken');
         if (!refreshToken) throw new Error('No refresh token');
-        
-        const response = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
-          refreshToken,
-        });
-        
-        const { accessToken } = response.data;
+
+        refreshPromise ||= api.post('/auth/refresh', { refreshToken }, { skipAuthRefresh: true });
+        const response = await refreshPromise;
+        refreshPromise = null;
+        const { accessToken, refreshToken: nextRefreshToken } = response.data;
         localStorage.setItem('accessToken', accessToken);
-        
+        if (nextRefreshToken) localStorage.setItem('refreshToken', nextRefreshToken);
+
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (err) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        refreshPromise = null;
+        clearSession();
+        if (window.location.pathname !== '/login') window.location.assign('/login');
         return Promise.reject(err);
       }
     }
-    
+
     return Promise.reject(error);
   }
 );
