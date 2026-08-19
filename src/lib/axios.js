@@ -12,6 +12,11 @@ const api = axios.create({
   withCredentials: true,
 });
 
+const publicAuthPaths = [
+  '/auth/login', '/auth/register', '/auth/refresh', '/auth/verify-otp',
+  '/auth/resend-otp', '/auth/forgot-password', '/auth/verify-reset-otp', '/auth/reset-password',
+];
+
 let refreshPromise = null;
 
 export const clearSession = () => {
@@ -23,7 +28,10 @@ export const clearSession = () => {
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('accessToken');
-    if (token) {
+    const requestUrl = config.url || '';
+    const isPublicAuthRequest = publicAuthPaths.some((path) => requestUrl.includes(path));
+    // Public authentication flows must reach Auth even when local storage contains an expired token.
+    if (token && !config.skipAuthRefresh && !isPublicAuthRequest) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     config.headers['X-Correlation-Id'] = crypto.randomUUID();
