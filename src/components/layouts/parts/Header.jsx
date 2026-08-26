@@ -26,9 +26,12 @@ const Header = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const initialLoad = setTimeout(fetchNotifications, 0);
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -134,7 +137,7 @@ const Header = () => {
               )}
             </button>
 
-            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} onNotificationStateChanged={fetchNotifications} />
 
             <Link 
               to="/admin/settings" 

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:phase8": "node tools/phase8-notification-smoke.mjs",
     "lint": "eslint .",
     "check:api-boundary": "node tools/check-api-boundary.mjs",
     "preview": "vite preview"

@@ -26,10 +26,13 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
   };
 
   useEffect(() => {
-    fetchUnreadCount();
+    const initialLoad = setTimeout(fetchUnreadCount, 0);
     // Refresh every 30 seconds for dynamic feel
     const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -137,7 +140,7 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
                 )}
               </button>
               
-              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} onNotificationStateChanged={fetchUnreadCount} />
               
               <button 
                 onClick={() => navigate('/organizer/settings')}

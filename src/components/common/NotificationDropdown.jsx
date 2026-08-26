@@ -11,7 +11,7 @@ import {
   Settings
 } from 'lucide-react';
 
-const NotificationDropdown = ({ isOpen, onClose }) => {
+const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedNotif, setSelectedNotif] = useState(null);
@@ -84,12 +84,10 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
       unread: false
     }
   ];
+  void mockNotifications;
 
   const getNotificationsList = () => {
-    if (notifications && notifications.length > 0) {
-      return notifications;
-    }
-    return mockNotifications;
+    return notifications;
   };
 
   const handleSelectNotif = async (notif) => {
@@ -98,9 +96,21 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
       try {
         await axios.post(`/notifications/${notif.id}/read`);
         setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, unread: false, isNew: false } : n));
+        onNotificationStateChanged?.();
       } catch (error) {
         console.error('Lỗi khi đánh dấu đã đọc:', error);
       }
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    if (!notifications.some(notification => notification.unread)) return;
+    try {
+      await axios.post('/notifications/read-all');
+      setNotifications(prev => prev.map(notification => ({ ...notification, unread: false, isNew: false })));
+      onNotificationStateChanged?.();
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
     }
   };
 
@@ -139,7 +149,7 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
 
   return (
     <>
-      <div className="absolute top-[calc(100%+12px)] -right-12 w-[400px] bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden animate-in fade-in zoom-in slide-in-from-top-2 duration-300 z-[101]">
+      <div aria-busy={loading} className="absolute top-[calc(100%+12px)] -right-12 w-[400px] bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden animate-in fade-in zoom-in slide-in-from-top-2 duration-300 z-[101]">
         {/* Arrow */}
         <div className="absolute -top-2 right-16 w-4 h-4 bg-white border-l border-t border-slate-100 rotate-45"></div>
         
@@ -187,6 +197,12 @@ const NotificationDropdown = ({ isOpen, onClose }) => {
 
         {/* Footer */}
         <div className="p-4 bg-white">
+          <button
+            onClick={handleMarkAllRead}
+            className="w-full mb-2 py-3 text-slate-500 hover:text-primary text-[10px] font-black uppercase tracking-[0.15em] rounded-2xl transition-all"
+          >
+            Đánh dấu tất cả đã đọc
+          </button>
           <button 
             onClick={handleViewAll}
             className="w-full py-4 bg-slate-50 hover:bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all flex items-center justify-center gap-2"

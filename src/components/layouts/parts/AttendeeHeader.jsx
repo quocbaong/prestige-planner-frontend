@@ -26,9 +26,12 @@ const AttendeeHeader = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const initialLoad = setTimeout(fetchNotifications, 0);
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -97,7 +100,7 @@ const AttendeeHeader = () => {
                 </span>
               )}
             </button>
-            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} onNotificationStateChanged={fetchNotifications} />
           </div>
 
           {/* Settings Icon */}

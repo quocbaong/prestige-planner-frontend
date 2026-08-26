@@ -78,12 +78,10 @@ const NotificationPage = () => {
       unread: false,
     }
   ];
+  void mockNotifications;
 
   const getNotificationsList = () => {
-    if (notifications && notifications.length > 0) {
-      return notifications;
-    }
-    return mockNotifications;
+    return notifications;
   };
 
   const unreadCount = getNotificationsList().filter(n => n.unread).length;
@@ -114,6 +112,16 @@ const NotificationPage = () => {
     }
   };
 
+  const handleMarkAllRead = async () => {
+    if (!notifications.some(notification => notification.unread)) return;
+    try {
+      await axios.post('/notifications/read-all');
+      setNotifications(prev => prev.map(notification => ({ ...notification, unread: false, isNew: false })));
+    } catch (error) {
+      console.error('Lỗi khi đánh dấu tất cả đã đọc:', error);
+    }
+  };
+
   const getIcon = (type) => {
     switch(type) {
       case 'location': return <MapPin className="w-6 h-6 text-indigo-600" />;
@@ -135,7 +143,7 @@ const NotificationPage = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] font-sans overflow-hidden">
+    <div aria-busy={loading} className="flex flex-col h-full bg-[#f8fafc] font-sans overflow-hidden">
       {/* Header Section */}
       <div className="bg-white border-b border-slate-100 px-10 py-10 flex-shrink-0">
         <div className="max-w-[1200px] mx-auto">
@@ -156,6 +164,12 @@ const NotificationPage = () => {
                 {filter.label}
               </button>
             ))}
+            <button
+              onClick={handleMarkAllRead}
+              className="ml-auto px-4 py-2.5 rounded-full text-sm font-black text-slate-500 bg-slate-100 hover:bg-slate-200"
+            >
+              Đánh dấu tất cả đã đọc
+            </button>
           </div>
         </div>
       </div>
