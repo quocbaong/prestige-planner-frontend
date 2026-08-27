@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { eventService } from '../services/eventService';
 
 const OrganizerSchedulePage = () => {
@@ -7,7 +7,7 @@ const OrganizerSchedulePage = () => {
   const [currentDate, setCurrentDate] = useState(new Date()); // Ngày hiện tại thực tế
   const [selectedDay, setSelectedDay] = useState(null); // for modal
   const [realEvents, setRealEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -25,8 +25,6 @@ const OrganizerSchedulePage = () => {
 
   const generateDays = (month, year) => {
     const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-
     const startDay = new Date(firstDay);
     const dayOfWeek = startDay.getDay();
     const diff = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
@@ -37,8 +35,8 @@ const OrganizerSchedulePage = () => {
     const actualToday = new Date();
 
     for (let i = 0; i < 35; i++) {
-      const isToday = tempDate.getDate() === actualToday.getDate() && 
-                      tempDate.getMonth() === actualToday.getMonth() && 
+      const isToday = tempDate.getDate() === actualToday.getDate() &&
+                      tempDate.getMonth() === actualToday.getMonth() &&
                       tempDate.getFullYear() === actualToday.getFullYear();
       const isPrevMonth = tempDate.getMonth() < month && tempDate.getFullYear() <= year;
       const isNextMonth = tempDate.getMonth() > month || tempDate.getFullYear() > year;
@@ -220,7 +218,7 @@ const OrganizerSchedulePage = () => {
         {viewMode === 'month' && (
           <div className="grid grid-cols-7 auto-rows-[85px] xl:auto-rows-[100px] divide-x divide-y divide-slate-100/60">
             {days.map((dayObj, i) => (
-              <motion.div
+              <Motion.div
                 key={i}
                 whileHover={dayObj.events && dayObj.events.length > 0 ? { scale: 1.02, zIndex: 10 } : {}}
                 onClick={() => dayObj.events && dayObj.events.length > 0 && setSelectedDay(dayObj)}
@@ -266,7 +264,7 @@ const OrganizerSchedulePage = () => {
                     )}
                   </div>
                 )}
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         )}
@@ -310,7 +308,7 @@ const OrganizerSchedulePage = () => {
                   {/* Events */}
                   <div className="space-y-3 mt-2">
                     {dayObj.events && dayObj.events.map((event, idx) => (
-                      <motion.div
+                      <Motion.div
                         key={idx}
                         whileHover={{ scale: 1.02 }}
                         className={`px-4 py-3 rounded-2xl text-sm cursor-pointer transition-all ${event.style}`}
@@ -333,7 +331,7 @@ const OrganizerSchedulePage = () => {
                             <span className="text-xs font-bold text-primary ml-1 bg-indigo-50 px-2 py-0.5 rounded-md">+2</span>
                           </div>
                         )}
-                      </motion.div>
+                      </Motion.div>
                     ))}
                   </div>
                 </div>
@@ -387,7 +385,7 @@ const OrganizerSchedulePage = () => {
                           const startTimeStr = new Date(ev.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
                           const endTimeStr = ev.endDate ? new Date(ev.endDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : `${slotHour + 2}:30`;
                           return (
-                            <motion.div
+                            <Motion.div
                               key={ev.id || idx}
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -407,7 +405,7 @@ const OrganizerSchedulePage = () => {
                                   <div className="w-8 h-8 rounded-full border-2 border-white shadow-sm bg-indigo-50 flex items-center justify-center font-bold text-xs text-primary">+2</div>
                                 </div>
                               </div>
-                            </motion.div>
+                            </Motion.div>
                           );
                         })}
                       </div>
@@ -493,7 +491,7 @@ const OrganizerSchedulePage = () => {
       {/* Day Events Modal */}
       <AnimatePresence>
         {selectedDay && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -504,7 +502,7 @@ const OrganizerSchedulePage = () => {
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
 
             {/* Modal */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -549,7 +547,7 @@ const OrganizerSchedulePage = () => {
 
                 <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                   {selectedDay.events.map((event, idx) => (
-                    <motion.div
+                    <Motion.div
                       key={idx}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -600,12 +598,12 @@ const OrganizerSchedulePage = () => {
                           </div>
                         )}
                       </div>
-                    </motion.div>
+                    </Motion.div>
                   ))}
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </Motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </div>

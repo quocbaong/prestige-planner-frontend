@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import axios from '../lib/axios';
-import { 
-  Send, 
-  Save, 
-  Calendar, 
-  History, 
-  TrendingUp, 
-  Users, 
-  MousePointer2, 
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { broadcastService } from '../services/broadcastService';
+import {
+  Send,
+  Save,
+  Calendar,
+  History,
+  TrendingUp,
+  Users,
+  MousePointer2,
   AlertCircle,
   Smartphone,
   Info,
@@ -19,10 +19,28 @@ import {
   Volume2
 } from 'lucide-react';
 
+const defaultSlides = [
+  {
+    title: "Hệ thống bảo trì",
+    type: "Bảo trì hệ thống",
+    body: "Hệ thống EventArchitect sẽ tiến hành bảo trì nâng cấp định kỳ vào lúc 02:00 AM ngày 20/10/2023. Một số dịch vụ có thể bị gián đoạn tạm thời trong khoảng 30 phút."
+  },
+  {
+    title: "Ưu đãi cực khủng tháng 12",
+    type: "Khuyến mãi",
+    body: "Giảm giá lên đến 50% cho tất cả các vé sự kiện công nghệ. Đăng ký ngay hôm nay để nhận ưu đãi hấp dẫn từ nhà tổ chức."
+  },
+  {
+    title: "Sự kiện âm nhạc EDM hoành tráng",
+    type: "Tin tức mới",
+    body: "Chào mừng các bạn đến với sự kiện đại nhạc hội EDM lớn nhất mùa hè này. Nhanh tay săn vé ngay!"
+  }
+];
+
 const BroadcastPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  
+
   // Form State
   const [title, setTitle] = useState('');
   const [type, setType] = useState('Bảo trì hệ thống');
@@ -32,49 +50,6 @@ const BroadcastPage = () => {
 
   // Slideshow States
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-
-  const defaultSlides = [
-    {
-      title: "Hệ thống bảo trì",
-      type: "Bảo trì hệ thống",
-      body: "Hệ thống EventArchitect sẽ tiến hành bảo trì nâng cấp định kỳ vào lúc 02:00 AM ngày 20/10/2023. Một số dịch vụ có thể bị gián đoạn tạm thời trong khoảng 30 phút."
-    },
-    {
-      title: "Ưu đãi cực khủng tháng 12",
-      type: "Khuyến mãi",
-      body: "Giảm giá lên đến 50% cho tất cả các vé sự kiện công nghệ. Đăng ký ngay hôm nay để nhận ưu đãi hấp dẫn từ nhà tổ chức."
-    },
-    {
-      title: "Sự kiện âm nhạc EDM hoành tráng",
-      type: "Tin tức mới",
-      body: "Chào mừng các bạn đến với sự kiện đại nhạc hội EDM lớn nhất mùa hè này. Nhanh tay săn vé ngay!"
-    }
-  ];
-
-  const getSlides = () => {
-    if (history && history.length > 0) {
-      return history.map(h => ({
-        title: h.title,
-        type: h.type === 'Bảo trì' ? 'Bảo trì hệ thống' : 
-              h.type === 'Khuyến mãi' ? 'Khuyến mãi' : 'Tin tức mới',
-        body: h.body || 'Nội dung thông báo hệ thống...'
-      }));
-    }
-    return defaultSlides;
-  };
-
-  
-  // Custom Date Time Picker State
-  const [showDateTimePicker, setShowDateTimePicker] = useState(false);
-  const [pickerMonth, setPickerMonth] = useState(new Date().getMonth());
-  const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
-  const [selectedDateObj, setSelectedDateObj] = useState(new Date(Date.now() + 3600000)); // default to 1 hour later
-  const [selectedHour, setSelectedHour] = useState('09');
-  const [selectedMinute, setSelectedMinute] = useState('00');
-  
-  const dateTimePickerRef = useRef(null);
-
-  // Loaded Data State
   const [history, setHistory] = useState([]);
   const [stats, setStats] = useState({
     totalReach: "128.4k",
@@ -85,10 +60,33 @@ const BroadcastPage = () => {
     negativeFeedbackPercent: 5
   });
 
+  const getSlides = useCallback(() => {
+    if (history && history.length > 0) {
+      return history.map(h => ({
+        title: h.title,
+        type: h.type === 'Bảo trì' ? 'Bảo trì hệ thống' :
+              h.type === 'Khuyến mãi' ? 'Khuyến mãi' : 'Tin tức mới',
+        body: h.body || 'Nội dung thông báo hệ thống...'
+      }));
+    }
+    return defaultSlides;
+  }, [history]);
+
+
+  // Custom Date Time Picker State
+  const [showDateTimePicker, setShowDateTimePicker] = useState(false);
+  const [pickerMonth, setPickerMonth] = useState(new Date().getMonth());
+  const [pickerYear, setPickerYear] = useState(new Date().getFullYear());
+  const [selectedDateObj, setSelectedDateObj] = useState(new Date(Date.now() + 3600000)); // default to 1 hour later
+  const [selectedHour, setSelectedHour] = useState('09');
+  const [selectedMinute, setSelectedMinute] = useState('00');
+
+  const dateTimePickerRef = useRef(null);
+
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/admin/broadcast');
+      const response = await broadcastService.getPage();
       setHistory(response.data.history || []);
       if (response.data.stats) {
         setStats(response.data.stats);
@@ -102,7 +100,7 @@ const BroadcastPage = () => {
 
   useEffect(() => {
     fetchData();
-    
+
     // Close picker when clicking outside
     const handleClickOutside = (event) => {
       if (dateTimePickerRef.current && !dateTimePickerRef.current.contains(event.target)) {
@@ -117,18 +115,18 @@ const BroadcastPage = () => {
   useEffect(() => {
     const slides = getSlides();
     if (slides.length <= 1) return;
-    
+
     // Only slide if user is NOT actively typing
     if (title.trim() !== '' || body.trim() !== '') {
       return;
     }
-    
+
     const interval = setInterval(() => {
       setCurrentSlideIndex(prev => (prev + 1) % slides.length);
     }, 4000);
-    
+
     return () => clearInterval(interval);
-  }, [history, title, body]);
+  }, [getSlides, title, body]);
 
   // Compute active slide
   const getActiveSlide = () => {
@@ -148,7 +146,7 @@ const BroadcastPage = () => {
 
   // Format string for API (YYYY-MM-DDTHH:mm)
   const apiFormattedTime = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}-${String(selectedDateObj.getDate()).padStart(2, '0')}T${selectedHour}:${selectedMinute}`;
-  
+
   // Format string for UI display
   const uiFormattedTime = `${selectedHour}:${selectedMinute} - ${String(selectedDateObj.getDate()).padStart(2, '0')}/${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}/${selectedDateObj.getFullYear()}`;
 
@@ -164,7 +162,7 @@ const BroadcastPage = () => {
 
     try {
       setSubmitting(true);
-      await axios.post('/admin/broadcast', {
+      await broadcastService.send({
         title,
         type,
         target,
@@ -174,12 +172,12 @@ const BroadcastPage = () => {
       });
 
       alert(schedule === 'now' ? 'Bản tin đã được phát đi thành công!' : 'Đã lên lịch phát bản tin thành công!');
-      
+
       // Reset Form
       setTitle('');
       setBody('');
       setSchedule('now');
-      
+
       // Refresh History
       fetchData();
     } catch (error) {
@@ -195,14 +193,14 @@ const BroadcastPage = () => {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    
+
     // Day of the week for first day (0 = Sunday, 1 = Monday, etc.)
     // Shift so Monday is index 0
     let startDayOfWeek = firstDay.getDay() - 1;
     if (startDayOfWeek < 0) startDayOfWeek = 6;
-    
+
     const days = [];
-    
+
     // Prev Month padding
     const prevMonthLastDay = new Date(year, month, 0).getDate();
     for (let i = startDayOfWeek - 1; i >= 0; i--) {
@@ -212,7 +210,7 @@ const BroadcastPage = () => {
         date: new Date(year, month - 1, prevMonthLastDay - i)
       });
     }
-    
+
     // Current Month days
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({
@@ -221,7 +219,7 @@ const BroadcastPage = () => {
         date: new Date(year, month, i)
       });
     }
-    
+
     // Next Month padding
     const remainingSlots = 42 - days.length;
     for (let i = 1; i <= remainingSlots; i++) {
@@ -231,7 +229,7 @@ const BroadcastPage = () => {
         date: new Date(year, month + 1, i)
       });
     }
-    
+
     return days;
   };
 
@@ -241,7 +239,7 @@ const BroadcastPage = () => {
   return (
     <div className="p-8 bg-[#f8fafc] min-h-full font-sans animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="max-w-[1400px] mx-auto">
-        
+
         {/* Header Title Section */}
         <div className="mb-8 max-w-2xl">
           <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight mb-2">
@@ -253,10 +251,10 @@ const BroadcastPage = () => {
         </div>
 
         <div className="grid grid-cols-12 gap-8">
-          
+
           {/* Main Content: Left Column (8/12) */}
           <div className="col-span-12 lg:col-span-8 space-y-8">
-            
+
             {/* Create New Broadcast Form */}
             <div className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100">
               <h2 className="text-xl font-extrabold text-slate-800 mb-6 flex items-center gap-2">
@@ -267,11 +265,11 @@ const BroadcastPage = () => {
                 {/* Title Input */}
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 ml-1">Tiêu đề bản tin</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Nhập tiêu đề để thông báo..." 
+                    placeholder="Nhập tiêu đề để thông báo..."
                     className="w-full bg-slate-100 border-none rounded-2xl p-4 text-slate-700 focus:ring-2 focus:ring-primary/20 transition-all outline-none placeholder:text-slate-400 font-bold"
                   />
                 </div>
@@ -281,7 +279,7 @@ const BroadcastPage = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 ml-1">Loại tin</label>
                     <div className="relative">
-                      <select 
+                      <select
                         value={type}
                         onChange={(e) => setType(e.target.value)}
                         className="w-full bg-slate-100 border-none rounded-2xl p-4 text-slate-700 focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none cursor-pointer font-bold pr-10"
@@ -296,7 +294,7 @@ const BroadcastPage = () => {
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-slate-700 ml-1">Đối tượng nhận</label>
                     <div className="relative">
-                      <select 
+                      <select
                         value={target}
                         onChange={(e) => setTarget(e.target.value)}
                         className="w-full bg-slate-100 border-none rounded-2xl p-4 text-slate-700 focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none cursor-pointer font-bold pr-10"
@@ -313,11 +311,11 @@ const BroadcastPage = () => {
                 {/* Content Area */}
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 ml-1">Nội dung thông báo</label>
-                  <textarea 
+                  <textarea
                     rows={6}
                     value={body}
                     onChange={(e) => setBody(e.target.value)}
-                    placeholder="Soạn thảo nội dung chi tiết tại đây..." 
+                    placeholder="Soạn thảo nội dung chi tiết tại đây..."
                     className="w-full bg-slate-100 border-none rounded-2xl p-4 text-slate-700 focus:ring-2 focus:ring-primary/20 transition-all outline-none resize-none placeholder:text-slate-400 font-medium leading-relaxed"
                   ></textarea>
                 </div>
@@ -327,11 +325,11 @@ const BroadcastPage = () => {
                   <h3 className="text-sm font-bold text-primary">Tùy chọn lập lịch</h3>
                   <div className="flex items-center gap-8">
                     <label className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name="schedule" 
-                        className="hidden" 
-                        checked={schedule === 'now'} 
+                      <input
+                        type="radio"
+                        name="schedule"
+                        className="hidden"
+                        checked={schedule === 'now'}
                         onChange={() => {
                           setSchedule('now');
                           setShowDateTimePicker(false);
@@ -344,11 +342,11 @@ const BroadcastPage = () => {
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name="schedule" 
-                        className="hidden" 
-                        checked={schedule === 'later'} 
+                      <input
+                        type="radio"
+                        name="schedule"
+                        className="hidden"
+                        checked={schedule === 'later'}
                         onChange={() => setSchedule('later')}
                       />
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${schedule === 'later' ? 'border-primary' : 'border-slate-300'}`}>
@@ -360,10 +358,10 @@ const BroadcastPage = () => {
 
                   {/* PREMIUM CUSTOM DATE/TIME PICKER */}
                   <div className="relative" ref={dateTimePickerRef}>
-                     <div 
+                     <div
                        onClick={() => schedule === 'later' && setShowDateTimePicker(!showDateTimePicker)}
                        className={`w-full flex items-center justify-between border rounded-2xl p-4 text-sm font-bold transition-all outline-none ${
-                         schedule === 'now' 
+                         schedule === 'now'
                            ? 'bg-slate-100/50 border-slate-200 text-slate-400 cursor-not-allowed'
                            : 'bg-white border-slate-200 text-slate-700 cursor-pointer hover:border-primary/50'
                        }`}
@@ -380,7 +378,7 @@ const BroadcastPage = () => {
                        <div className="absolute top-full left-0 mt-3 w-80 bg-white rounded-3xl shadow-xl shadow-black/10 border border-slate-100 p-5 z-50 animate-in fade-in zoom-in-95 duration-200">
                          {/* Calendar Month Header */}
                          <div className="flex justify-between items-center mb-4">
-                           <button 
+                           <button
                              onClick={() => {
                                if (pickerMonth === 0) {
                                  setPickerMonth(11);
@@ -396,7 +394,7 @@ const BroadcastPage = () => {
                            <span className="font-extrabold text-slate-800 text-sm">
                              {monthNames[pickerMonth]}, {pickerYear}
                            </span>
-                           <button 
+                           <button
                              onClick={() => {
                                if (pickerMonth === 11) {
                                  setPickerMonth(0);
@@ -444,7 +442,7 @@ const BroadcastPage = () => {
                              <Clock className="w-3.5 h-3.5 text-primary" /> Giờ gửi:
                            </span>
                            <div className="flex items-center gap-2">
-                             <select 
+                             <select
                                value={selectedHour}
                                onChange={(e) => setSelectedHour(e.target.value)}
                                className="bg-slate-100 rounded-xl p-2 text-xs font-bold text-slate-700 outline-none cursor-pointer hover:bg-slate-200/80 transition-colors"
@@ -454,7 +452,7 @@ const BroadcastPage = () => {
                                ))}
                              </select>
                              <span className="font-extrabold text-slate-400">:</span>
-                             <select 
+                             <select
                                value={selectedMinute}
                                onChange={(e) => setSelectedMinute(e.target.value)}
                                className="bg-slate-100 rounded-xl p-2 text-xs font-bold text-slate-700 outline-none cursor-pointer hover:bg-slate-200/80 transition-colors"
@@ -467,7 +465,7 @@ const BroadcastPage = () => {
                          </div>
 
                          {/* Confirm Footer */}
-                         <button 
+                         <button
                            onClick={() => setShowDateTimePicker(false)}
                            className="w-full py-2.5 bg-primary hover:bg-primary-hover text-white text-xs font-black rounded-2xl shadow-md shadow-primary/20 transition-all hover:-translate-y-0.5"
                          >
@@ -480,7 +478,7 @@ const BroadcastPage = () => {
 
                 {/* Buttons */}
                 <div className="flex items-center justify-end gap-4 pt-4">
-                  <button 
+                  <button
                     onClick={() => {
                       setTitle('Nâng cấp định kỳ');
                       setBody('Chào mọi người, hệ thống sẽ bảo trì nâng cấp trong vòng 15 phút tới.');
@@ -489,7 +487,7 @@ const BroadcastPage = () => {
                   >
                     Mẫu thử nhanh
                   </button>
-                  <button 
+                  <button
                     disabled={submitting}
                     onClick={handleSendBroadcast}
                     className="px-8 py-3 bg-primary hover:bg-primary-hover disabled:bg-gray-300 text-white rounded-2xl font-bold flex items-center gap-2 shadow-lg shadow-primary/25 transition-all active:scale-95"
@@ -540,7 +538,7 @@ const BroadcastPage = () => {
                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Tỷ lệ xem</p>
                         </div>
                       </div>
-                      
+
                       <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-200/50">
                         <div>
                           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Reach</p>
@@ -565,7 +563,7 @@ const BroadcastPage = () => {
 
           {/* Side Panel: Right Column (4/12) */}
           <div className="col-span-12 lg:col-span-4 space-y-8">
-            
+
             {/* Live Preview Mockup */}
             <div className="bg-[#1e1b4b] rounded-[40px] p-8 shadow-2xl relative overflow-hidden h-[600px] flex flex-col items-center">
                <div className="flex items-center gap-1 mb-8 w-full justify-end">
@@ -580,8 +578,8 @@ const BroadcastPage = () => {
                </div>
 
                 {/* Mobile Notification Card */}
-                <div 
-                   key={activeSlide.title + activeSlide.type} 
+                <div
+                   key={activeSlide.title + activeSlide.type}
                    className="w-full bg-white rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 transform hover:scale-[1.02] animate-in fade-in slide-in-from-bottom-6 duration-500"
                 >
                    <div className={`p-6 py-8 flex flex-col items-center text-center text-white relative transition-colors duration-500 ${
@@ -628,7 +626,7 @@ const BroadcastPage = () => {
                 {!(title.trim() !== '' || body.trim() !== '') && (
                    <div className="flex gap-1.5 mt-4 z-10">
                       {getSlides().map((_, idx) => (
-                         <div 
+                         <div
                             key={idx}
                             className={`h-1.5 rounded-full transition-all duration-300 ${
                               idx === (currentSlideIndex % getSlides().length) ? 'w-6 bg-indigo-400' : 'w-1.5 bg-indigo-950/60'

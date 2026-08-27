@@ -1,26 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   LineChart, Line, Cell, AreaChart, Area, PieChart, Pie, Sector
 } from 'recharts';
 import { dashboardService } from '../services/dashboardService';
-
-// ─── API Config (thay URL khi có backend) ─────────────────────────────────────
-// const API_BASE = 'http://localhost:8080/api/organizer';
-
-// ─── Helper: tạo query params từ period / customRange ─────────────────────────
-const buildDateParams = (period, customRange) => {
-  if (period === 'custom' && customRange.start && customRange.end) {
-    return `from=${customRange.start}&to=${customRange.end}`;
-  }
-  const to = new Date();
-  const from = new Date();
-  from.setDate(to.getDate() - Number(period));
-  const fmt = d => d.toISOString().split('T')[0];
-  return `from=${fmt(from)}&to=${fmt(to)}&period=${period}`;
-};
+import { eventService } from '../services/eventService';
 
 const formatRevenue = (value) => {
   if (value === null || value === undefined) return '0 ₫';
@@ -54,7 +40,7 @@ const colorMap = {
 const KpiCard = ({ card, index }) => {
   const c = colorMap[card.color];
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 }}
@@ -73,7 +59,7 @@ const KpiCard = ({ card, index }) => {
         </span>
       </div>
       <p className="text-2xl font-black text-slate-900 tracking-tight">{card.displayValue}</p>
-    </motion.div>
+    </Motion.div>
   );
 };
 
@@ -114,34 +100,38 @@ const OrganizerReportAnalyticsPage = () => {
   const [period, setPeriod] = useState(30);
   const [customRange, setCustomRange] = useState({ start: '', end: '' });
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [hoveredSeg, setHoveredSeg] = useState(null);
   const navigate = useNavigate();
 
   // ─── Chart states ─────────────────────────────────────────────────────────
-  const [isLoadingKpi,       setIsLoadingKpi]       = useState(false);
-  const [isLoadingDensity,   setIsLoadingDensity]   = useState(false);
-  const [isLoadingAudience,  setIsLoadingAudience]  = useState(false);
-  const [isLoadingFunnel,    setIsLoadingFunnel]    = useState(false);
-  const [isLoadingEvents,    setIsLoadingEvents]    = useState(false);
+  const [isLoadingKpi, setIsLoadingKpi] = useState(true);
+  const isLoadingAudience = false;
 
   // ─── Dynamic chart data (sẽ được cập nhật từ API) ─────────────────────────
   const [apiKpiData,        setApiKpiData]        = useState([]);
-  const [apiLineDataThu,    setApiLineDataThu]    = useState(null);
-  const [apiLineDataGio,    setApiLineDataGio]    = useState(null);
-  const [apiAudienceSegs,   setApiAudienceSegs]   = useState(null);
-  const [apiFunnelSteps,    setApiFunnelSteps]    = useState(null);
   const [apiEvents,         setApiEvents]         = useState(null);
-  const [cartConversionRate, setCartConversionRate] = useState(5.4);
-  const [cartAbandonmentRate, setCartAbandonmentRate] = useState(34.2);
-  const [averageOrderValue, setAverageOrderValue] = useState(450000);
+  const apiLineDataThu = null;
+  const apiLineDataGio = null;
+  const apiAudienceSegs = null;
+  const apiFunnelSteps = null;
+  const cartConversionRate = null;
+  const cartAbandonmentRate = null;
+  const averageOrderValue = null;
 
   // ─── Fetch KPI summary ────────────────────────────────────────────────────
   useEffect(() => {
-    const params = buildDateParams(period, customRange);
-    setIsLoadingKpi(true);
-    dashboardService.getKpiSummary(params)
-      .then(r => {
-        if (r.data) {
-          const data = r.data;
+    Promise.all([eventService.getEvents(), dashboardService.getOrganizerFinance()])
+      .then(([eventsResponse, financeResponse]) => {
+        const events = eventsResponse.data || [];
+        setApiEvents(events);
+        const overview = financeResponse.data?.overview || {};
+        const data = {
+          totalEvents: events.length,
+          totalRevenue: overview.totalRevenue || 0,
+          totalAttendees: events.reduce((sum, event) => sum + Number(event.currentAttendees || 0), 0),
+          upcomingEvents: events.filter(event => ['DRAFT', 'PUBLISHED', 'ON_SALE'].includes(event.status)).length,
+        };
+        if (data) {
           const formattedKpi = [
             {
               label: 'Tổng sự kiện',
@@ -181,67 +171,7 @@ const OrganizerReportAnalyticsPage = () => {
       })
       .catch(console.error)
       .finally(() => setIsLoadingKpi(false));
-  }, [period, customRange]);
-
-  // ─── Fetch density chart (Mật độ tham dự) ────────────────────────────────
-  useEffect(() => {
-    const params = buildDateParams(period, customRange);
-    setIsLoadingDensity(true);
-
-    dashboardService.getCheckinDensity(params)
-      .then(r => {
-        if (r.data) {
-          setApiLineDataThu(r.data.thu);
-          setApiLineDataGio(r.data.gio);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setIsLoadingDensity(false));
-  }, [period, customRange]);
-
-  // ─── Fetch audience segments (Phân khúc đối tượng) ────────────────────────
-  useEffect(() => {
-    const params = buildDateParams(period, customRange);
-    setIsLoadingAudience(true);
-
-    dashboardService.getAudienceSegments(params)
-      .then(r => {
-        if (r.data) setApiAudienceSegs(r.data);
-      })
-      .catch(console.error)
-      .finally(() => setIsLoadingAudience(false));
-  }, [period, customRange]);
-
-  // ─── Fetch conversion funnel (Phễu chuyển đổi) ───────────────────────────
-  useEffect(() => {
-    const params = buildDateParams(period, customRange);
-    setIsLoadingFunnel(true);
-
-    dashboardService.getConversionFunnel(params)
-      .then(r => {
-        if (r.data) {
-          setApiFunnelSteps(r.data.stages);
-          if (r.data.cartConversionRate !== undefined) setCartConversionRate(r.data.cartConversionRate);
-          if (r.data.cartAbandonmentRate !== undefined) setCartAbandonmentRate(r.data.cartAbandonmentRate);
-          if (r.data.averageOrderValue !== undefined) setAverageOrderValue(r.data.averageOrderValue);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setIsLoadingFunnel(false));
-  }, [period, customRange]);
-
-  // ─── Fetch events table (Bảng sự kiện) ───────────────────────────────────
-  useEffect(() => {
-    const params = buildDateParams(period, customRange);
-    setIsLoadingEvents(true);
-
-    dashboardService.getEvents(params)
-      .then(r => {
-        if (r.data) setApiEvents(r.data);
-      })
-      .catch(console.error)
-      .finally(() => setIsLoadingEvents(false));
-  }, [period, customRange]);
+  }, []);
 
   const [viewMode, setViewMode] = useState('thu');
   const [hoveredWeek, setHoveredWeek] = useState(null);
@@ -249,7 +179,7 @@ const OrganizerReportAnalyticsPage = () => {
   // Dữ liệu hiển thị trực tiếp từ API (không fallback mock)
   const activeLineDataThu = apiLineDataThu || [];
   const activeLineDataGio = apiLineDataGio || [];
-  const activeAudienceSegs = apiAudienceSegs || [];
+  const activeAudienceSegs = React.useMemo(() => apiAudienceSegs || [], [apiAudienceSegs]);
   const activeFunnelSteps = apiFunnelSteps || [];
   const activeEvents = apiEvents || [];
 
@@ -408,13 +338,13 @@ const OrganizerReportAnalyticsPage = () => {
   return (
     <div className="p-4 lg:p-6 max-w-[1600px] mx-auto bg-[#f8fafc] min-h-screen">
       {/* ── Page Header ── */}
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4"
       >
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => navigate('/organizer/reports')}
             className="w-10 h-10 rounded-xl flex items-center justify-center bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg transition-all shadow-sm"
             title="Quay lại"
@@ -448,7 +378,7 @@ const OrganizerReportAnalyticsPage = () => {
 
             <AnimatePresence>
               {showDatePicker && (
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.97 }}
@@ -495,7 +425,7 @@ const OrganizerReportAnalyticsPage = () => {
                       Áp dụng
                     </button>
                   </div>
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
           </div>
@@ -506,7 +436,7 @@ const OrganizerReportAnalyticsPage = () => {
             Xuất báo cáo (PDF)
           </button>
         </div>
-      </motion.div>
+      </Motion.div>
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
@@ -519,7 +449,7 @@ const OrganizerReportAnalyticsPage = () => {
       {/* ── Heatmap + Audience Segment ── */}
       <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 mb-4">
         {/* ── Mật độ tham dự ── */}
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
@@ -652,10 +582,10 @@ const OrganizerReportAnalyticsPage = () => {
               </ul>
             </div>
           )}
-        </motion.div>
+        </Motion.div>
 
         {/* Audience Segment — Donut Chart */}
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.25 }}
@@ -665,7 +595,6 @@ const OrganizerReportAnalyticsPage = () => {
 
           {/* Donut + Legend layout */}
           {(() => {
-            const [hoveredSeg, setHoveredSeg] = React.useState(null);
 
             // Chưa có data từ API → hiển thị placeholder
             if (!activeAudienceSegs || activeAudienceSegs.length === 0) {
@@ -793,12 +722,12 @@ const OrganizerReportAnalyticsPage = () => {
               </ul>
             </div>
           )}
-        </motion.div>
+        </Motion.div>
 
       </div>
 
       {/* ── Conversion Funnel ── */}
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
@@ -815,7 +744,7 @@ const OrganizerReportAnalyticsPage = () => {
           <div className="absolute top-[40px] left-[12%] right-[12%] h-1.5 bg-slate-100 -translate-y-1/2 rounded-full hidden lg:block" />
 
           {activeFunnelSteps.map((step, i) => (
-            <motion.div
+            <Motion.div
               key={i}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -823,13 +752,13 @@ const OrganizerReportAnalyticsPage = () => {
               className="relative z-10 flex flex-col items-center flex-1 w-full"
             >
               {/* Node */}
-              <div 
+              <div
                 className={`relative flex flex-col items-center justify-center w-[140px] h-[80px] rounded-2xl bg-gradient-to-br ${step.color} shadow-lg hover:-translate-y-1 hover:shadow-xl transition-all cursor-default border-[3px] border-white ring-1 ring-slate-100`}
               >
                 <span className="text-2xl font-black text-white">{step.value}</span>
                 <span className="text-[9px] font-bold text-white/80 uppercase tracking-widest mt-0.5">{step.sub}</span>
               </div>
-              
+
               {/* Label */}
               <div className="mt-4 text-center">
                 <p className="text-[11px] font-black text-slate-700 uppercase tracking-widest">{step.label}</p>
@@ -853,16 +782,16 @@ const OrganizerReportAnalyticsPage = () => {
                 </div>
               )}
 
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 
         {/* Funnel sub-metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100">
           {[
-            { label: 'Tỷ lệ chuyển đổi giỏ', value: `${cartConversionRate}%`, icon: 'show_chart', color: 'text-indigo-600', bg: 'bg-indigo-50', ring: 'ring-indigo-100' },
-            { label: 'Bỏ giỏ (Cart Abandonment)', value: `${cartAbandonmentRate}%`, icon: 'remove_shopping_cart', color: 'text-rose-500', bg: 'bg-rose-50', ring: 'ring-rose-100' },
-            { label: 'Giá trị đơn trung bình', value: formatRevenue(averageOrderValue), icon: 'payments', color: 'text-emerald-600', bg: 'bg-emerald-50', ring: 'ring-emerald-100' },
+            { label: 'Tỷ lệ chuyển đổi giỏ', value: cartConversionRate === null ? 'Chưa hỗ trợ' : `${cartConversionRate}%`, icon: 'show_chart', color: 'text-indigo-600', bg: 'bg-indigo-50', ring: 'ring-indigo-100' },
+            { label: 'Bỏ giỏ (Cart Abandonment)', value: cartAbandonmentRate === null ? 'Chưa hỗ trợ' : `${cartAbandonmentRate}%`, icon: 'remove_shopping_cart', color: 'text-rose-500', bg: 'bg-rose-50', ring: 'ring-rose-100' },
+            { label: 'Giá trị đơn trung bình', value: averageOrderValue === null ? 'Chưa hỗ trợ' : formatRevenue(averageOrderValue), icon: 'payments', color: 'text-emerald-600', bg: 'bg-emerald-50', ring: 'ring-emerald-100' },
           ].map((m, i) => (
             <div key={i} className={`flex items-center gap-4 p-4 rounded-2xl ${m.bg} ring-1 ${m.ring} transition-all hover:shadow-md cursor-default`}>
               <div className={`w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center shrink-0`}>
@@ -875,10 +804,10 @@ const OrganizerReportAnalyticsPage = () => {
             </div>
           ))}
         </div>
-      </motion.div>
+      </Motion.div>
 
       {/* ── Event Comparison Table ── */}
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45 }}
@@ -904,7 +833,7 @@ const OrganizerReportAnalyticsPage = () => {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {activeEvents.map((ev, i) => (
-                <motion.tr
+                <Motion.tr
                   key={i}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -925,12 +854,12 @@ const OrganizerReportAnalyticsPage = () => {
                       {ev.status === 'done' ? 'Hoàn tất' : 'Đang diễn'}
                     </span>
                   </td>
-                </motion.tr>
+                </Motion.tr>
               ))}
             </tbody>
           </table>
         </div>
-      </motion.div>
+      </Motion.div>
     </div>
   );
 };

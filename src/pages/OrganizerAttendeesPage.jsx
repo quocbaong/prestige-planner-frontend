@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { eventService } from '../services/eventService';
 import { registrationService } from '../services/registrationService';
 import { invitationService } from '../services/invitationService';
@@ -49,12 +49,12 @@ const OrganizerAttendeesPage = () => {
 
         const registrationPromises = events.map(e => registrationService.getRegistrations(e.id).catch(() => ({data: []})));
         const invitationPromises = events.map(e => invitationService.getInvitations(e.id).catch(() => ({data: []})));
-        
+
         const [registrationsRes, invitationsRes] = await Promise.all([
           Promise.all(registrationPromises),
           Promise.all(invitationPromises)
         ]);
-        
+
         let allAttendees = [];
         events.forEach((ev, index) => {
           const regData = registrationsRes[index]?.data || [];
@@ -90,7 +90,7 @@ const OrganizerAttendeesPage = () => {
           }));
 
           let currentEvAttendees = [...mappedRegs, ...mappedInvs];
-          
+
           if (currentEvAttendees.length < expectedCount) {
             const diff = expectedCount - currentEvAttendees.length;
             for (let i = 0; i < diff; i++) {
@@ -114,7 +114,7 @@ const OrganizerAttendeesPage = () => {
 
           allAttendees = [...allAttendees, ...currentEvAttendees];
         });
-        
+
         setAttendees(allAttendees);
         if (events.length > 0) {
           setNewAttendee(prev => ({ ...prev, event: events[0].title }));
@@ -152,7 +152,7 @@ const OrganizerAttendeesPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Toast State
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
 
@@ -185,10 +185,10 @@ const OrganizerAttendeesPage = () => {
   // Filtering Logic
   const filteredAttendees = attendees
     .filter(attendee => {
-      const matchesSearch = attendee.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch = attendee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            attendee.email.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCategory = 
+
+      const matchesCategory =
         activeFilter === 'Tất cả' ||
         (activeFilter === 'VIP' && attendee.ticketType === 'VIP') ||
         (activeFilter === 'Thường' && attendee.ticketType === 'Thường') ||
@@ -216,7 +216,7 @@ const OrganizerAttendeesPage = () => {
       const headers = ['ID', 'Họ tên', 'Email', 'Sự kiện', 'Loại vé', 'Trạng thái', 'Thời gian'];
       const csvContent = [
         headers.join(','),
-        ...filteredAttendees.map(a => 
+        ...filteredAttendees.map(a =>
           [a.id, a.name, a.email, a.event, a.ticketType, a.status, a.time].join(',')
         )
       ].join('\n');
@@ -305,14 +305,14 @@ const OrganizerAttendeesPage = () => {
           <p className="text-slate-500 max-w-2xl font-medium">Quản lý và theo dõi thông tin người tham dự cho tất cả các sự kiện hiện đang diễn ra trong hệ thống của bạn.</p>
         </div>
         <div className="flex gap-3">
-          <button 
+          <button
             onClick={handleExport}
             className="flex items-center gap-2 bg-white text-slate-700 px-5 py-2.5 rounded-full font-semibold border-none shadow-sm hover:shadow-md hover:bg-slate-50 transition-all active:scale-95"
           >
             <span className="material-symbols-outlined text-[20px]">ios_share</span>
             Xuất danh sách (Excel)
           </button>
-          <button 
+          <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
@@ -325,7 +325,7 @@ const OrganizerAttendeesPage = () => {
       {/* Dashboard Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
-          <motion.div
+          <Motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -341,13 +341,13 @@ const OrganizerAttendeesPage = () => {
                 </div>
                 <p className="text-slate-600 text-md font-medium">{stat.label}</p>
               </div>
-              <span className={`text-xs font-bold px-2 py-1 rounded-full 
+              <span className={`text-xs font-bold px-2 py-1 rounded-full
                 ${stat.change.includes('+') || stat.change.includes('%') ? 'bg-green-50 text-green-600' : 'text-slate-400'}`}>
                 {stat.change}
               </span>
             </div>
             <h3 className="text-2xl font-extrabold text-slate-900 mt-1">{stat.value}</h3>
-          </motion.div>
+          </Motion.div>
         ))}
       </div>
 
@@ -356,14 +356,14 @@ const OrganizerAttendeesPage = () => {
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-            <input 
+            <input
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-surface-container-lowest border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400 text-sm font-medium" 
-              placeholder="Tìm theo tên khách mời, email hoặc mã vé..." 
+              className="w-full bg-surface-container-lowest border-none rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-primary/20 placeholder:text-slate-400 text-sm font-medium"
+              placeholder="Tìm theo tên khách mời, email hoặc mã vé..."
               type="text"
             />
           </div>
@@ -376,8 +376,8 @@ const OrganizerAttendeesPage = () => {
                   setCurrentPage(1);
                 }}
                 className={`px-6 py-3 rounded-xl text-sm font-semibold whitespace-nowrap transition-all
-                  ${activeFilter === filter 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                  ${activeFilter === filter
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
                     : 'bg-surface-container-highest/50 text-slate-700 hover:bg-surface-container-highest'}`}
               >
                 {filter}
@@ -385,7 +385,7 @@ const OrganizerAttendeesPage = () => {
             ))}
           </div>
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className={`p-3 rounded-xl transition-all shadow-sm flex items-center justify-center border
                 ${showAdvancedFilters ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-100 hover:bg-slate-50'}`}
@@ -396,7 +396,7 @@ const OrganizerAttendeesPage = () => {
             {/* Advanced Filters Dropdown */}
             <AnimatePresence>
               {showAdvancedFilters && (
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -406,7 +406,7 @@ const OrganizerAttendeesPage = () => {
                     <div>
                       <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.1em] mb-2 block">Lọc theo sự kiện</label>
                       <div className="relative group">
-                        <select 
+                        <select
                           value={selectedEvent}
                           onChange={(e) => { setSelectedEvent(e.target.value); setCurrentPage(1); }}
                           className="appearance-none w-full bg-slate-50 border border-slate-100 rounded-xl py-2.5 px-4 pr-10 text-sm font-semibold text-slate-700 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none transition-all cursor-pointer"
@@ -439,7 +439,7 @@ const OrganizerAttendeesPage = () => {
                       </div>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedEvent('Tất cả sự kiện');
                         setSortBy('newest');
@@ -452,7 +452,7 @@ const OrganizerAttendeesPage = () => {
                       Đặt lại tất cả
                     </button>
                   </div>
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
           </div>
@@ -482,8 +482,8 @@ const OrganizerAttendeesPage = () => {
                   </td>
                 </tr>
               ) : paginatedAttendees.map((attendee) => (
-                <tr 
-                  key={attendee.id} 
+                <tr
+                  key={attendee.id}
                   className="hover:bg-slate-50/50 transition-colors group h-[81px]"
                 >
                   <td className="px-6 py-4">
@@ -512,10 +512,10 @@ const OrganizerAttendeesPage = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className={`flex items-center gap-2 font-bold text-xs
-                      ${attendee.status === 'Đã Check-in' ? 'text-green-600' : 
+                      ${attendee.status === 'Đã Check-in' ? 'text-green-600' :
                         attendee.status === 'Vắng mặt' ? 'text-slate-400' : 'text-primary'}`}>
                       <span className={`w-2 h-2 rounded-full ${
-                        attendee.status === 'Đã Check-in' ? 'bg-green-500' : 
+                        attendee.status === 'Đã Check-in' ? 'bg-green-500' :
                         attendee.status === 'Vắng mặt' ? 'bg-slate-300' : 'bg-primary'}`}></span>
                       {attendee.status}
                     </div>
@@ -525,7 +525,7 @@ const OrganizerAttendeesPage = () => {
                   </td>
                   <td className="px-8 py-4 text-center relative">
                     <div className="flex justify-center">
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenMenuId(openMenuId === attendee.id ? null : attendee.id);
@@ -539,17 +539,17 @@ const OrganizerAttendeesPage = () => {
                     <AnimatePresence>
                       {openMenuId === attendee.id && (
                         <>
-                          <div 
-                            className="fixed inset-0 z-[10]" 
+                          <div
+                            className="fixed inset-0 z-[10]"
                             onClick={() => setOpenMenuId(null)}
                           />
-                          <motion.div
+                          <Motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                             className="absolute right-8 top-[70%] mt-2 w-52 bg-white rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-slate-100 py-2 z-[20] overflow-hidden text-left"
                           >
-                            <button 
+                            <button
                               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                               onClick={() => {
                                 setOpenMenuId(null);
@@ -560,7 +560,7 @@ const OrganizerAttendeesPage = () => {
                               <span className="material-symbols-outlined text-lg text-slate-400">visibility</span>
                               Xem chi tiết
                             </button>
-                            <button 
+                            <button
                               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                               onClick={() => {
                                 setOpenMenuId(null);
@@ -572,7 +572,7 @@ const OrganizerAttendeesPage = () => {
                               Chỉnh sửa
                             </button>
                             <div className="h-px bg-slate-50 my-1 mx-2" />
-                            <button 
+                            <button
                               className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 transition-colors"
                               onClick={() => {
                                 setOpenMenuId(null);
@@ -583,7 +583,7 @@ const OrganizerAttendeesPage = () => {
                               <span className="material-symbols-outlined text-lg">delete</span>
                               Xóa khách mời
                             </button>
-                          </motion.div>
+                          </Motion.div>
                         </>
                       )}
                     </AnimatePresence>
@@ -606,34 +606,34 @@ const OrganizerAttendeesPage = () => {
             Hiển thị {filteredAttendees.length > 0 ? `${startItem} - ${endItem}` : '0'} trên {filteredAttendees.length} khách mời
           </p>
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
               className="p-2 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-primary disabled:opacity-50 transition-colors shadow-sm"
             >
               <span className="material-symbols-outlined text-sm">chevron_left</span>
             </button>
-            
+
             {getPaginationRange(currentPage, realTotalPages).map((p, i) => (
               p === '...' ? (
                 <span key={`dots-${i}`} className="w-8 h-8 text-sm font-bold flex items-center justify-center text-slate-400">
                   ...
                 </span>
               ) : (
-                <button 
+                <button
                   key={p}
                   onClick={() => setCurrentPage(p)}
                   className={`w-8 h-8 rounded-lg text-sm font-bold flex items-center justify-center transition-all
-                    ${currentPage === p 
-                      ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                    ${currentPage === p
+                      ? 'bg-primary text-white shadow-md shadow-primary/20'
                       : 'hover:bg-slate-100 text-slate-600 font-medium'}`}
                 >
                   {p}
                 </button>
               )
             ))}
-            
-            <button 
+
+            <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, realTotalPages))}
               disabled={currentPage === realTotalPages || realTotalPages === 0}
               className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 hover:text-primary transition-all shadow-sm disabled:opacity-50"
@@ -648,14 +648,14 @@ const OrganizerAttendeesPage = () => {
       <AnimatePresence>
         {showAddModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddModal(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.9, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -667,7 +667,7 @@ const OrganizerAttendeesPage = () => {
                     <h2 className="text-3xl font-black text-slate-900 tracking-tight">Thêm khách mời</h2>
                     <p className="text-slate-500 font-medium mt-1">Điền thông tin để đăng ký thành viên mới</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => setShowAddModal(false)}
                     className="w-12 h-12 flex items-center justify-center rounded-2xl hover:bg-slate-100 text-slate-400 transition-all active:scale-90"
                   >
@@ -682,11 +682,11 @@ const OrganizerAttendeesPage = () => {
                         <span className="material-symbols-outlined text-sm text-primary">person</span>
                         Họ và tên khách mời
                       </label>
-                      <input 
+                      <input
                         required
                         value={newAttendee.name}
                         onChange={(e) => setNewAttendee({...newAttendee, name: e.target.value})}
-                        type="text" 
+                        type="text"
                         className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl py-4 px-5 text-sm font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none placeholder:text-slate-400"
                         placeholder="Ví dụ: Nguyễn Văn A"
                       />
@@ -697,11 +697,11 @@ const OrganizerAttendeesPage = () => {
                         <span className="material-symbols-outlined text-sm text-primary">mail</span>
                         Địa chỉ Email
                       </label>
-                      <input 
+                      <input
                         required
                         value={newAttendee.email}
                         onChange={(e) => setNewAttendee({...newAttendee, email: e.target.value})}
-                        type="email" 
+                        type="email"
                         className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl py-4 px-5 text-sm font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none placeholder:text-slate-400"
                         placeholder="nguyenvana@gmail.com"
                       />
@@ -714,7 +714,7 @@ const OrganizerAttendeesPage = () => {
                           Sự kiện
                         </label>
                         <div className="relative group">
-                          <select 
+                          <select
                             value={newAttendee.event}
                             onChange={(e) => setNewAttendee({...newAttendee, event: e.target.value})}
                             className="appearance-none w-full bg-slate-50/50 border border-slate-200 rounded-2xl py-4 px-5 pr-12 text-sm font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none cursor-pointer"
@@ -732,7 +732,7 @@ const OrganizerAttendeesPage = () => {
                           Loại vé
                         </label>
                         <div className="relative group">
-                          <select 
+                          <select
                             value={newAttendee.ticketType}
                             onChange={(e) => setNewAttendee({...newAttendee, ticketType: e.target.value})}
                             className="appearance-none w-full bg-slate-50/50 border border-slate-200 rounded-2xl py-4 px-5 pr-12 text-sm font-semibold text-slate-900 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none cursor-pointer"
@@ -749,7 +749,7 @@ const OrganizerAttendeesPage = () => {
                   </div>
 
                   <div className="pt-6 flex gap-4">
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowAddModal(false)}
                       className="flex-1 py-4 rounded-2xl font-black text-slate-600 bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:text-rose-500 hover:border-rose-200 transition-all active:scale-95 flex items-center justify-center gap-2"
@@ -757,7 +757,7 @@ const OrganizerAttendeesPage = () => {
                       <span className="material-symbols-outlined text-xl">cancel</span>
                       Hủy bỏ
                     </button>
-                    <button 
+                    <button
                       type="submit"
                       className="flex-[1.5] bg-primary text-white py-4 rounded-2xl font-black shadow-xl shadow-primary/30 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center justify-center gap-2"
                     >
@@ -767,7 +767,7 @@ const OrganizerAttendeesPage = () => {
                   </div>
                 </form>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -775,7 +775,7 @@ const OrganizerAttendeesPage = () => {
       {/* ── Toast Notification ── */}
       <AnimatePresence>
         {toast.visible && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20, x: 20 }}
             animate={{ opacity: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: 20 }}
@@ -787,7 +787,7 @@ const OrganizerAttendeesPage = () => {
               </span>
             </div>
             <p className="text-sm font-black tracking-tight">{toast.message}</p>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
@@ -795,8 +795,8 @@ const OrganizerAttendeesPage = () => {
       <AnimatePresence>
         {isDetailModalOpen && selectedAttendee && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDetailModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden">
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDetailModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+            <Motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden">
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-[2rem] bg-indigo-600 text-white flex items-center justify-center text-xl font-black shadow-lg shadow-indigo-100">
@@ -837,7 +837,7 @@ const OrganizerAttendeesPage = () => {
                 <button onClick={() => setIsDetailModalOpen(false)} className="px-8 py-4 bg-white text-slate-600 font-black text-sm rounded-2xl hover:bg-slate-100 transition-all border border-slate-200 shadow-sm">Đóng</button>
                 <button onClick={() => { setIsDetailModalOpen(false); setIsEditModalOpen(true); }} className="px-8 py-4 bg-indigo-600 text-white font-black text-sm rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2"><span className="material-symbols-outlined text-sm">edit</span>Chỉnh sửa khách mời</button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -846,8 +846,8 @@ const OrganizerAttendeesPage = () => {
       <AnimatePresence>
         {isEditModalOpen && selectedAttendee && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden">
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsEditModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+            <Motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-2xl bg-white rounded-[3rem] shadow-2xl overflow-hidden">
               <form onSubmit={handleEditSubmit}>
                 <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                   <div className="flex items-center gap-4">
@@ -870,9 +870,9 @@ const OrganizerAttendeesPage = () => {
                     <div className="space-y-2">
                       <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Sự kiện</label>
                       <div className="relative group">
-                        <select 
-                          value={selectedAttendee.event} 
-                          onChange={e => setSelectedAttendee({...selectedAttendee, event: e.target.value})} 
+                        <select
+                          value={selectedAttendee.event}
+                          onChange={e => setSelectedAttendee({...selectedAttendee, event: e.target.value})}
                           className="appearance-none w-full bg-white border-2 border-slate-300 rounded-[1.5rem] py-4 pl-5 pr-12 text-sm font-black text-slate-900 focus:border-indigo-600 transition-all outline-none cursor-pointer"
                         >
                           {eventsList.map(ev => <option key={ev} value={ev}>{ev}</option>)}
@@ -885,9 +885,9 @@ const OrganizerAttendeesPage = () => {
                     <div className="space-y-2">
                       <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Loại vé</label>
                       <div className="relative group">
-                        <select 
-                          value={selectedAttendee.ticketType} 
-                          onChange={e => setSelectedAttendee({...selectedAttendee, ticketType: e.target.value})} 
+                        <select
+                          value={selectedAttendee.ticketType}
+                          onChange={e => setSelectedAttendee({...selectedAttendee, ticketType: e.target.value})}
                           className="appearance-none w-full bg-white border-2 border-slate-300 rounded-[1.5rem] py-4 pl-5 pr-12 text-sm font-black text-slate-900 focus:border-indigo-600 transition-all outline-none cursor-pointer"
                         >
                           <option value="Thường">Thường</option>
@@ -908,7 +908,7 @@ const OrganizerAttendeesPage = () => {
                   </button>
                 </div>
               </form>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -917,8 +917,8 @@ const OrganizerAttendeesPage = () => {
       <AnimatePresence>
         {isDeleteModalOpen && attendeeToDelete && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeleteModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 text-center">
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeleteModalOpen(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" />
+            <Motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 text-center">
               <div className="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center mx-auto mb-6"><span className="material-symbols-outlined text-4xl text-rose-600 animate-pulse">warning</span></div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-3">Xác nhận xóa?</h2>
               <p className="text-sm text-slate-500 font-bold leading-relaxed mb-8">Bạn có chắc chắn muốn xóa khách mời <span className="text-slate-900 font-black">{attendeeToDelete.name}</span>? Hành động này không thể hoàn tác.</p>
@@ -926,7 +926,7 @@ const OrganizerAttendeesPage = () => {
                 <button onClick={() => setIsDeleteModalOpen(false)} className="py-4 bg-slate-100 text-slate-600 font-black text-sm rounded-2xl hover:bg-slate-200 transition-all">Hủy bỏ</button>
                 <button onClick={handleConfirmDelete} className="py-4 bg-rose-600 text-white font-black text-sm rounded-2xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-100">Xác nhận xóa</button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>

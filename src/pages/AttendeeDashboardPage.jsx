@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Calendar, 
-  Ticket, 
-  Plus, 
+import {
+  Calendar,
+  Ticket,
+  Plus,
   ArrowRight,
   TrendingUp,
   QrCode
 } from 'lucide-react';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 import { registrationService } from '../services/registrationService';
 
 const formatDate = (dateStr) => {
@@ -34,7 +34,7 @@ const AttendeeDashboardPage = () => {
         setLoading(true);
         const response = await registrationService.getMyRegistrations();
         const regs = response.data || [];
-        
+
         const now = new Date();
         let upcoming = 0;
         let ticketsCount = 0;
@@ -70,12 +70,12 @@ const AttendeeDashboardPage = () => {
 
   return (
     <div className="p-6 lg:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000 bg-[#fbfcff] min-h-screen pb-20">
-      
+
       {/* 1. Compact Premium Greeting Section */}
       <div className="relative overflow-hidden bg-slate-900 rounded-[48px] p-10 lg:p-14 text-white shadow-2xl shadow-indigo-100/20">
         {/* Background Decor */}
         <div className="absolute top-[-80px] right-[-80px] w-64 h-64 bg-indigo-600/20 blur-[100px] rounded-full" />
-        
+
         <div className="relative z-10 flex flex-col xl:flex-row justify-between items-center gap-12">
           {/* Left: Content */}
           <div className="flex-1">
@@ -130,14 +130,14 @@ const AttendeeDashboardPage = () => {
         <div className="xl:col-span-8 space-y-8">
            <div className="flex items-center justify-between">
               <h3 className="text-2xl font-black text-slate-800 tracking-tight">Sự kiện gần đây</h3>
-              <button 
+              <button
                 onClick={() => navigate('/attendee/events')}
                 className="text-[14px] font-bold text-indigo-600 hover:underline"
               >
                 Xem tất cả
               </button>
            </div>
-           
+
            {loading ? (
              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                {[1, 2].map((i) => (
@@ -168,7 +168,7 @@ const AttendeeDashboardPage = () => {
                            <span className="text-xs text-slate-400 font-bold">
                              {reg.tickets?.length || 0} vé • <span className="uppercase">{reg.status === 'CONFIRMED' ? 'Đã xác nhận' : 'Chờ duyệt'}</span>
                            </span>
-                           <button 
+                           <button
                              onClick={() => navigate('/attendee/tickets', { state: { selectedRegId: reg.id } })}
                              className="text-indigo-600 font-black text-[13px] flex items-center gap-1 group"
                            >
@@ -201,7 +201,7 @@ const AttendeeDashboardPage = () => {
                  <h4 className="text-xl font-black text-slate-800 tracking-tight mb-2">Gợi ý sự kiện</h4>
                  <p className="text-[13px] font-bold text-slate-500 leading-relaxed">Chúng tôi có những sự kiện hội thảo công nghệ mới phù hợp với bạn.</p>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/events')}
                 className="w-full bg-white text-indigo-600 py-4 rounded-[22px] font-black text-[14px] shadow-sm border border-indigo-100 hover:bg-slate-50 transition-all"
               >
@@ -218,7 +218,7 @@ const AttendeeDashboardPage = () => {
                  <h4 className="text-xl font-black tracking-tight mb-2">Check-in nhanh</h4>
                  <p className="text-[13px] font-bold text-white/50 leading-relaxed">Lấy mã QR vé để tham gia sự kiện nhanh chóng hơn.</p>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/attendee/tickets')}
                 className="w-full bg-indigo-600 text-white py-4 rounded-[22px] font-black text-[14px] shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 transition-all"
               >

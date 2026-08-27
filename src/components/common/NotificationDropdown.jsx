@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from '../../lib/axios';
-import { 
-  Bell, 
-  MapPin, 
-  Clock, 
-  CheckCircle2, 
+import { notificationService } from '../../services/notificationService';
+import {
+  Bell,
+  MapPin,
+  Clock,
+  CheckCircle2,
   RefreshCcw,
   ChevronRight,
   Settings
@@ -21,7 +21,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
   const fetchNotifications = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/notifications');
+      const response = await notificationService.list();
       setNotifications(response.data || []);
     } catch (error) {
       console.error('Lỗi khi tải thông báo:', error);
@@ -94,7 +94,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
     setSelectedNotif(notif);
     if (notif.unread && !String(notif.id).startsWith('mock-')) {
       try {
-        await axios.post(`/notifications/${notif.id}/read`);
+        await notificationService.markRead(notif.id);
         setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, unread: false, isNew: false } : n));
         onNotificationStateChanged?.();
       } catch (error) {
@@ -106,7 +106,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
   const handleMarkAllRead = async () => {
     if (!notifications.some(notification => notification.unread)) return;
     try {
-      await axios.post('/notifications/read-all');
+      await notificationService.markAllRead();
       setNotifications(prev => prev.map(notification => ({ ...notification, unread: false, isNew: false })));
       onNotificationStateChanged?.();
     } catch (error) {
@@ -152,7 +152,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
       <div aria-busy={loading} className="absolute top-[calc(100%+12px)] -right-12 w-[400px] bg-white rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden animate-in fade-in zoom-in slide-in-from-top-2 duration-300 z-[101]">
         {/* Arrow */}
         <div className="absolute -top-2 right-16 w-4 h-4 bg-white border-l border-t border-slate-100 rotate-45"></div>
-        
+
         {/* Header */}
         <div className="px-8 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2">
@@ -169,7 +169,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
         {/* Notifications List */}
         <div className="max-h-[480px] overflow-y-auto no-scrollbar">
           {getNotificationsList().map((notif) => (
-            <div 
+            <div
               key={notif.id}
               onClick={() => handleSelectNotif(notif)}
               className="p-6 border-b border-slate-50 hover:bg-slate-50 transition-all cursor-pointer group relative flex items-start gap-4"
@@ -177,7 +177,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
               {notif.isNew && (
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
               )}
-              
+
               <div className={`w-10 h-10 ${getBgColor(notif.type)} rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110`}>
                   {getIcon(notif.type)}
               </div>
@@ -203,7 +203,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
           >
             Đánh dấu tất cả đã đọc
           </button>
-          <button 
+          <button
             onClick={handleViewAll}
             className="w-full py-4 bg-slate-50 hover:bg-primary/5 text-primary text-[10px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all flex items-center justify-center gap-2"
           >
@@ -217,13 +217,13 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
       {selectedNotif && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-lg rounded-[32px] p-8 border border-slate-100 shadow-[0_30px_60px_rgba(0,0,0,0.15)] flex flex-col gap-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-            
+
             {/* Header */}
             <div className="flex justify-between items-start">
               <div className={`w-14 h-14 ${getBgColor(selectedNotif.type)} rounded-[20px] flex items-center justify-center shadow-inner`}>
                 {getIcon(selectedNotif.type)}
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedNotif(null)}
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all font-bold text-sm"
               >
@@ -241,15 +241,15 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
                 </span>
                 <span className="text-[11px] font-bold text-slate-400">{selectedNotif.time}</span>
               </div>
-              
+
               <h3 className="text-xl font-black text-slate-800 leading-tight">
                 {selectedNotif.title}
               </h3>
-              
+
               <p className="text-slate-500 text-sm leading-relaxed font-medium pt-2">
                 {selectedNotif.description || selectedNotif.subtitle}
               </p>
-              
+
               {selectedNotif.location && (
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400 bg-slate-50 p-3.5 rounded-xl mt-4">
                   <MapPin className="w-4 h-4 text-indigo-500" />
@@ -265,7 +265,7 @@ const NotificationDropdown = ({ isOpen, onClose, onNotificationStateChanged }) =
                   {selectedNotif.actionLabel}
                 </button>
               )}
-              <button 
+              <button
                 onClick={() => setSelectedNotif(null)}
                 className={`py-4 font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all active:scale-95 ${
                   selectedNotif.actionLabel ? 'flex-1 bg-slate-50 hover:bg-slate-100 text-slate-500' : 'w-full bg-primary hover:bg-primary-hover text-white shadow-lg shadow-primary/20'

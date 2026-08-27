@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, KeyRound } from 'lucide-react';
-import axios from '../../lib/axios';
+import { authService } from '../../services/authService';
 import { toast } from 'react-hot-toast';
 
 const ForgotPasswordModal = ({ isOpen, onClose }) => {
@@ -23,7 +23,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     }
     setLoading(true);
     try {
-      await axios.post(`/auth/forgot-password?email=${email}`);
+      await authService.forgotPassword(email);
       toast.success('Mã OTP đã được gửi đến email của bạn');
       setStep(2);
     } catch (error) {
@@ -44,7 +44,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
 
     setLoading(true);
     try {
-      await axios.post('/auth/verify-reset-otp', {
+      await authService.verifyResetOtp({
         email,
         otp: otpValue
       });
@@ -72,7 +72,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
     const otpValue = otp.join('');
     setLoading(true);
     try {
-      await axios.post('/auth/reset-password', {
+      await authService.resetPassword({
         email,
         otp: otpValue,
         newPassword
@@ -116,15 +116,15 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
           onClick={onClose}
         />
-        
-        <motion.div
+
+        <Motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -147,7 +147,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
             <h3 className="text-2xl font-bold text-center text-gray-900 mb-2">
               Quên mật khẩu
             </h3>
-            
+
             {step === 1 ? (
               <form onSubmit={handleSendEmail}>
                 <p className="text-gray-500 text-center mb-8 px-4 text-sm">
@@ -158,8 +158,8 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                     <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                       <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                     </div>
-                    <input 
-                      type="email" 
+                    <input
+                      type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="block w-full pl-14 pr-5 py-4.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium placeholder-gray-400"
@@ -182,7 +182,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                   Nhập mã OTP gồm 6 chữ số đã gửi đến <br/>
                   <span className="font-semibold text-gray-900">{email}</span>
                 </p>
-                
+
                 <div className="flex justify-between gap-2 mb-8">
                   {otp.map((digit, index) => (
                     <input
@@ -217,7 +217,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                     <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                       <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                     </div>
-                    <input 
+                    <input
                       type={showPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
@@ -225,7 +225,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                       placeholder="Mật khẩu mới"
                       required
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
@@ -240,7 +240,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                     <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                       <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                     </div>
-                    <input 
+                    <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
@@ -248,7 +248,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
                       placeholder="Xác nhận mật khẩu mới"
                       required
                     />
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
@@ -268,7 +268,7 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
               </form>
             )}
           </div>
-        </motion.div>
+        </Motion.div>
       </div>
     </AnimatePresence>
   );

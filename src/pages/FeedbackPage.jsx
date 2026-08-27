@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from '../lib/axios';
-import { 
-  MessageSquare, 
-  Search, 
-  Bell, 
-  Settings, 
-  MoreVertical, 
+import { feedbackService } from '../services/feedbackService';
+import {
+  MessageSquare,
+  Search,
+  Bell,
+  Settings,
+  MoreVertical,
   ChevronRight,
   TrendingUp,
   AlertTriangle,
@@ -26,7 +26,7 @@ const FeedbackPage = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending'); // 'all' or 'pending'
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Loaded Stats & Stream Data
   const [sentiment, setSentiment] = useState({ positive: 68, neutral: 22, negative: 10 });
   const [trendsThisMonth, setTrendsThisMonth] = useState([
@@ -59,7 +59,7 @@ const FeedbackPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/admin/feedback');
+      const response = await feedbackService.getPage();
       if (response.data) {
         if (response.data.sentiment) setSentiment(response.data.sentiment);
         if (response.data.trendsThisMonth) setTrendsThisMonth(response.data.trendsThisMonth);
@@ -81,20 +81,20 @@ const FeedbackPage = () => {
   const handleAction = async (item, actionType, text = '') => {
     try {
       setActionSubmitting(true);
-      await axios.post('/admin/feedback/action', {
+      await feedbackService.action({
         feedbackId: item.id,
         actionType: actionType,
         replyText: text
       });
-      
+
       // Reset Modal state
       setShowModal(false);
       setInputText('');
       setSelectedItem(null);
-      
+
       // Refresh Data
       await fetchData();
-      
+
       alert('Đã thực hiện thao tác kiểm duyệt thành công!');
     } catch (error) {
       console.error('Lỗi khi xử lý kiểm duyệt phản hồi', error);
@@ -108,7 +108,7 @@ const FeedbackPage = () => {
     setSelectedItem(item);
     setModalType(type);
     setInputText(
-      type === 'reply' 
+      type === 'reply'
         ? `Chào ${item.name.split(' ').pop()}, chúng tôi đã nhận đóng góp của bạn và đang kiểm tra. Cảm ơn bạn!`
         : `Cảnh báo: Tài khoản của bạn bị cảnh cáo do báo cáo sai sự thật hoặc nội dung không hợp lệ.`
     );
@@ -118,7 +118,7 @@ const FeedbackPage = () => {
   // Filter items dynamically by status tab & search input
   const filteredItems = items.filter(item => {
     const matchesStatus = filter === 'all' || item.status === 'PENDING';
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -130,7 +130,7 @@ const FeedbackPage = () => {
   return (
     <div className="p-8 bg-[#f8fafc] min-h-full font-sans animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="max-w-[1400px] mx-auto space-y-8">
-        
+
         {/* Header section with Dynamic Search Input */}
         <div className="flex justify-between items-center">
           <div className="max-w-md">
@@ -139,13 +139,13 @@ const FeedbackPage = () => {
               Kiểm Duyệt Phản Hồi
             </h1>
           </div>
-          
+
           <div className="relative w-80">
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Tìm kiếm phản hồi..." 
+              placeholder="Tìm kiếm phản hồi..."
               className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-400"
             />
             <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
@@ -154,7 +154,7 @@ const FeedbackPage = () => {
 
         {/* Top Analysis Section */}
         <div className="grid grid-cols-12 gap-8">
-          
+
           {/* Sentiment Analysis Card */}
           <div className="col-span-12 lg:col-span-4 bg-white rounded-[32px] p-8 shadow-sm border border-slate-100 flex flex-col justify-between">
             <div className="flex items-center gap-2 mb-6">
@@ -163,7 +163,7 @@ const FeedbackPage = () => {
               </div>
               <h2 className="text-lg font-extrabold text-slate-800">Phân tích Cảm xúc</h2>
             </div>
-            
+
             <div className="space-y-6 flex-1 flex flex-col justify-center">
               <div>
                 <div className="flex justify-between items-end mb-2">
@@ -207,21 +207,21 @@ const FeedbackPage = () => {
                 <h2 className="text-lg font-extrabold text-slate-800">Xu hướng Báo cáo Sự cố</h2>
               </div>
               <div className="flex bg-slate-50 p-1 rounded-xl">
-                 <button 
+                 <button
                    onClick={() => setActiveMonth('thisMonth')}
                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                     activeMonth === 'thisMonth' 
-                       ? 'bg-white shadow-sm text-primary' 
+                     activeMonth === 'thisMonth'
+                       ? 'bg-white shadow-sm text-primary'
                        : 'text-slate-400 hover:text-slate-600'
                    }`}
                  >
                    Tháng này
                  </button>
-                 <button 
+                 <button
                    onClick={() => setActiveMonth('lastMonth')}
                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                     activeMonth === 'lastMonth' 
-                       ? 'bg-white shadow-sm text-primary' 
+                     activeMonth === 'lastMonth'
+                       ? 'bg-white shadow-sm text-primary'
                        : 'text-slate-400 hover:text-slate-600'
                    }`}
                  >
@@ -243,10 +243,10 @@ const FeedbackPage = () => {
                   const isTech = t.category === 'KỸ THUẬT';
                   return (
                     <div key={idx} className="flex flex-col items-center gap-3 w-full group">
-                       <div 
+                       <div
                          className={`w-16 rounded-t-2xl transition-all duration-1000 relative ${
-                           isTech 
-                             ? 'bg-primary shadow-lg shadow-primary/20 hover:bg-primary-hover' 
+                           isTech
+                             ? 'bg-primary shadow-lg shadow-primary/20 hover:bg-primary-hover'
                              : 'bg-indigo-100 group-hover:bg-indigo-200'
                          }`}
                          style={{ height: `${barHeight}px` }}
@@ -267,17 +267,17 @@ const FeedbackPage = () => {
 
         {/* Bottom Stream Section */}
         <div className="grid grid-cols-12 gap-8 pt-4">
-          
+
           {/* Feedback Stream (8/12) */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
             <div className="flex items-center justify-between">
                <h2 className="text-xl font-black text-slate-800">Luồng Phản hồi Mới</h2>
                <div className="flex bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50">
-                  <button 
+                  <button
                     onClick={() => setFilter('all')}
                     className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'all' ? 'bg-white shadow-md text-primary' : 'text-slate-500 hover:text-slate-800'}`}
                   >Tất cả</button>
-                  <button 
+                  <button
                     onClick={() => setFilter('pending')}
                     className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${filter === 'pending' ? 'bg-primary text-white shadow-lg shadow-primary/25' : 'text-slate-500 hover:text-slate-800'}`}
                   >Cần xử lý</button>
@@ -309,7 +309,7 @@ const FeedbackPage = () => {
                              </p>
                           </div>
                        </div>
-                       
+
                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                          item.categoryColor === 'red' ? 'bg-red-50 text-red-600 border-red-100' :
                          item.categoryColor === 'blue' ? 'bg-blue-50 text-primary border-blue-100' :
@@ -318,7 +318,7 @@ const FeedbackPage = () => {
                          {item.categoryLabel}
                        </span>
                     </div>
-                    
+
                     <p className="text-slate-600 leading-relaxed mb-8 text-md font-medium">
                        "{item.message}"
                     </p>
@@ -327,19 +327,19 @@ const FeedbackPage = () => {
                        <div className="flex gap-2">
                          {item.category === 'CONTENT_REPORT' && (
                            <>
-                             <button 
+                             <button
                                onClick={() => handleAction(item, 'APPROVE')}
                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600 hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
                              >
                                 <CheckCircle2 className="w-4 h-4" /> Phê duyệt
                              </button>
-                             <button 
+                             <button
                                onClick={() => openActionModal(item, 'warn')}
                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-all active:scale-95"
                              >
                                 <Flag className="w-4 h-4" /> Cảnh cáo
                              </button>
-                             <button 
+                             <button
                                onClick={() => handleAction(item, 'HIDE')}
                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-all active:scale-95"
                              >
@@ -350,13 +350,13 @@ const FeedbackPage = () => {
 
                          {item.category === 'SUGGESTION' && (
                            <>
-                             <button 
+                             <button
                                onClick={() => openActionModal(item, 'reply')}
                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600 hover:bg-primary/10 hover:text-primary transition-all active:scale-95"
                              >
                                 <Send className="w-4 h-4" /> Phản hồi
                              </button>
-                             <button 
+                             <button
                                onClick={() => handleAction(item, 'APPROVE')}
                                className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-all active:scale-95"
                              >
@@ -367,7 +367,7 @@ const FeedbackPage = () => {
 
                          {item.category === 'TECH_ISSUE' && (
                            <>
-                             <button 
+                             <button
                                onClick={() => handleAction(item, 'TRANSFER_TECH')}
                                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-2xl text-xs font-bold shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all active:scale-95"
                              >
@@ -379,7 +379,7 @@ const FeedbackPage = () => {
                            </>
                          )}
                        </div>
-                       
+
                        <div className="text-right">
                          {item.category === 'SUGGESTION' && (
                            <p className="text-xs font-bold italic text-slate-400">
@@ -406,7 +406,7 @@ const FeedbackPage = () => {
 
           {/* Right Panel (4/12) */}
           <div className="col-span-12 lg:col-span-4 space-y-8">
-            
+
             {/* Communication Log */}
             <div className="bg-white rounded-[40px] p-8 shadow-sm border border-slate-100">
                <h3 className="text-lg font-extrabold text-slate-800 mb-6 flex items-center gap-2">
@@ -478,7 +478,7 @@ const FeedbackPage = () => {
       {showModal && selectedItem && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-[32px] w-full max-w-lg p-8 shadow-2xl relative animate-in zoom-in-95 duration-200">
-            <button 
+            <button
               onClick={() => { setShowModal(false); setSelectedItem(null); }}
               className="absolute right-6 top-6 p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all"
             >
@@ -495,7 +495,7 @@ const FeedbackPage = () => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Nội dung tin nhắn</label>
-                <textarea 
+                <textarea
                   rows={4}
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
@@ -504,13 +504,13 @@ const FeedbackPage = () => {
               </div>
 
               <div className="flex gap-4 pt-4">
-                <button 
+                <button
                   onClick={() => { setShowModal(false); setSelectedItem(null); }}
                   className="flex-1 py-3 border-2 border-slate-100 hover:bg-slate-50 text-slate-500 text-xs font-black rounded-2xl transition-all active:scale-95"
                 >
                   Hủy bỏ
                 </button>
-                <button 
+                <button
                   disabled={actionSubmitting}
                   onClick={() => handleAction(selectedItem, modalType === 'reply' ? 'REPLY' : 'WARN', inputText)}
                   className="flex-1 py-3 bg-primary hover:bg-primary-hover disabled:bg-slate-300 text-white text-xs font-black rounded-2xl shadow-lg shadow-primary/25 transition-all flex items-center justify-center gap-2 active:scale-95"

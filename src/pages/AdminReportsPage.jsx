@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -41,7 +41,7 @@ const AdminReportsPage = () => {
   };
 
   // ─── Mock Data for Charts & Tables ──────────────────────────────────────────
-  
+
   // Platform Monthly Financial Stats
   const revenueHistory = [
     { month: 'Tháng 12', revenue: 1200, commission: 120 },
@@ -96,24 +96,24 @@ const AdminReportsPage = () => {
 
   const handleModerationAction = (actionType) => {
     const updatedStatus = actionType === 'suspend' ? 'Đã khóa' : 'Đã bỏ qua';
-    setReportedEvents(prev => prev.map(item => 
+    setReportedEvents(prev => prev.map(item =>
       item.id === selectedReportedEvent.id ? { ...item, status: updatedStatus } : item
     ));
-    
+
     showToast(
-      actionType === 'suspend' 
+      actionType === 'suspend'
         ? `Đã khóa vĩnh viễn sự kiện và đình chỉ nhà tổ chức!`
         : `Đã bác bỏ tất cả báo cáo cho sự kiện này!`,
       actionType === 'suspend' ? 'error' : 'success'
     );
-    
+
     setSelectedReportedEvent(null);
     setActionNotes('');
   };
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
-      
+
       {/* ── Page Header ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
@@ -133,7 +133,7 @@ const AdminReportsPage = () => {
 
             <AnimatePresence>
               {showDatePicker && (
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -172,13 +172,13 @@ const AdminReportsPage = () => {
                       Áp dụng ngày
                     </button>
                   </div>
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
           </div>
 
           {/* Export Report PDF */}
-          <button 
+          <button
             onClick={handleExportReport}
             className="flex items-center gap-2 bg-primary text-white px-7 py-3.5 rounded-full font-bold border-none shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 cursor-pointer whitespace-nowrap"
           >
@@ -245,8 +245,8 @@ const AdminReportsPage = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200
-                ${activeTab === tab.id 
-                  ? 'bg-white text-slate-900 shadow-md scale-[1.02]' 
+                ${activeTab === tab.id
+                  ? 'bg-white text-slate-900 shadow-md scale-[1.02]'
                   : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}`}
             >
               <Icon className="w-4 h-4" />
@@ -258,7 +258,7 @@ const AdminReportsPage = () => {
 
       {/* ── Main Tab Contents ── */}
       <AnimatePresence mode="wait">
-        <motion.div
+        <Motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -269,7 +269,7 @@ const AdminReportsPage = () => {
             <div className="space-y-8">
               {/* Charts grid */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
+
                 {/* Monthly Sales Area Chart */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                   <div className="mb-6 flex justify-between items-center">
@@ -318,7 +318,7 @@ const AdminReportsPage = () => {
                     <h3 className="text-lg font-bold text-slate-950">Phân khúc hạng vé bán lẻ</h3>
                     <p className="text-xs text-slate-400 font-semibold mt-0.5">Tỷ lệ số lượng vé đã xuất ra theo từng phân khúc</p>
                   </div>
-                  
+
                   <div className="h-56 relative flex items-center justify-center">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -400,7 +400,7 @@ const AdminReportsPage = () => {
             <div className="space-y-8">
               {/* Event success metrics */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
+
                 {/* Event Tickets Sold Bar Chart */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                   <div className="mb-6 flex justify-between items-center">
@@ -431,7 +431,7 @@ const AdminReportsPage = () => {
                   <div className="absolute right-0 bottom-0 translate-y-12 translate-x-12 opacity-10">
                     <Zap className="w-80 h-80 text-white" />
                   </div>
-                  
+
                   <div className="space-y-4 relative z-10">
                     <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
                       <Zap className="w-6 h-6 text-amber-400" />
@@ -449,7 +449,7 @@ const AdminReportsPage = () => {
                     </p>
                   </div>
 
-                  <button 
+                  <button
                     onClick={() => showToast('Đang tối ưu hóa phân tích dữ liệu AI...')}
                     className="w-full bg-white text-slate-950 font-black py-4 rounded-2xl hover:bg-slate-100 active:scale-95 transition-all shadow-lg"
                   >
@@ -491,7 +491,7 @@ const AdminReportsPage = () => {
                           <td className="px-6 py-4 font-bold text-slate-800">{evt.revenue}</td>
                           <td className="px-6 py-4 text-amber-500 font-bold">★ {evt.rating}</td>
                           <td className="px-6 py-4">
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold 
+                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
                               ${evt.status === 'Hoàn tất' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
                               <span className={`w-1.5 h-1.5 rounded-full ${evt.status === 'Hoàn tất' ? 'bg-emerald-500' : 'bg-blue-500'}`} />
                               {evt.status}
@@ -508,7 +508,7 @@ const AdminReportsPage = () => {
 
           {activeTab === 'moderation' && (
             <div className="space-y-8">
-              
+
               {/* Warning banner */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-rose-50 border border-rose-100 rounded-3xl">
                 <div className="flex items-center gap-4">
@@ -559,7 +559,7 @@ const AdminReportsPage = () => {
                           <td className="px-6 py-4 text-xs font-semibold text-slate-600">{evt.reporter}</td>
                           <td className="px-6 py-4 text-center font-bold text-slate-800">{evt.reportsCount} lượt</td>
                           <td className="px-6 py-4">
-                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full 
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full
                               ${evt.severity === 'Cao' ? 'bg-rose-100 text-rose-700' : evt.severity === 'Trung bình' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'}`}>
                               {evt.severity}
                             </span>
@@ -573,7 +573,7 @@ const AdminReportsPage = () => {
                           </td>
                           <td className="px-6 py-4 text-center">
                             {evt.status === 'Đang xử lý' ? (
-                              <button 
+                              <button
                                 onClick={() => setSelectedReportedEvent(evt)}
                                 className="bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-all cursor-pointer active:scale-95 shadow-sm"
                               >
@@ -591,13 +591,13 @@ const AdminReportsPage = () => {
               </div>
             </div>
           )}
-        </motion.div>
+        </Motion.div>
       </AnimatePresence>
 
       {/* ── Toast Notifications ── */}
       <AnimatePresence>
         {toast.visible && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20, x: 20 }}
             animate={{ opacity: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: 20 }}
@@ -613,7 +613,7 @@ const AdminReportsPage = () => {
               )}
             </div>
             <p className="text-sm font-black tracking-tight">{toast.message}</p>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
@@ -621,11 +621,11 @@ const AdminReportsPage = () => {
       <AnimatePresence>
         {selectedReportedEvent && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedReportedEvent(null)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedReportedEvent(null)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
+            <Motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -640,7 +640,7 @@ const AdminReportsPage = () => {
               </div>
 
               <div className="p-8 space-y-6">
-                
+
                 {/* Event report details */}
                 <div className="grid grid-cols-2 gap-4 text-sm font-semibold p-4 bg-slate-50 border border-slate-100 rounded-2xl">
                   <div>
@@ -663,31 +663,31 @@ const AdminReportsPage = () => {
 
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Ghi chú xử lý (Gửi đến Nhà tổ chức)</label>
-                  <textarea 
-                    rows={4} 
-                    value={actionNotes} 
-                    onChange={e => setActionNotes(e.target.value)} 
-                    placeholder="Nhập lý do chi tiết về quyết định khóa hoặc bỏ qua báo cáo để hệ thống gửi thư điện tử thông báo đến nhà tổ chức..." 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-rose-500/10 focus:border-rose-600 transition-all outline-none resize-none" 
+                  <textarea
+                    rows={4}
+                    value={actionNotes}
+                    onChange={e => setActionNotes(e.target.value)}
+                    placeholder="Nhập lý do chi tiết về quyết định khóa hoặc bỏ qua báo cáo để hệ thống gửi thư điện tử thông báo đến nhà tổ chức..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-rose-500/10 focus:border-rose-600 transition-all outline-none resize-none"
                   />
                 </div>
               </div>
 
               <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                <button 
+                <button
                   onClick={() => handleModerationAction('dismiss')}
                   className="px-6 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 transition-all rounded-xl cursor-pointer"
                 >
                   Bác bỏ báo cáo
                 </button>
-                <button 
+                <button
                   onClick={() => handleModerationAction('suspend')}
                   className="px-8 py-3.5 bg-rose-600 text-white font-black text-sm rounded-xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-100 cursor-pointer"
                 >
                   Đóng & Khóa sự kiện
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>

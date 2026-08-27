@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { Heart } from 'lucide-react';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 import { eventService } from '../services/eventService';
 import { registrationService } from '../services/registrationService';
 import LandingNavbar from '../components/common/LandingNavbar';
@@ -94,9 +94,9 @@ const EventDetailPage = () => {
   // Registration selection state
   const [selectedTicketTypeId, setSelectedTicketTypeId] = useState('');
   const [ticketQuantity, setTicketQuantity] = useState(1);
-  const [notes, setNotes] = useState('');
+  const [notes] = useState('');
   const [couponCode, setCouponCode] = useState('');
-  
+
   // Registration Flow Status: 'selection' | 'registering' | 'payment_pending' | 'confirming' | 'success'
   const [flowState, setFlowState] = useState('selection');
   const [activeRegistration, setActiveRegistration] = useState(null);
@@ -257,7 +257,7 @@ const EventDetailPage = () => {
   return (
     <div className={isAttendeeSpace ? "p-8 max-w-[1600px] mx-auto bg-[#fafafc] rounded-[40px] shadow-sm border border-indigo-50/50 my-6" : "min-h-screen bg-[#fafafc] font-sans selection:bg-[#5c46e5]/20 flex flex-col"}>
       {!isAttendeeSpace && <LandingNavbar />}
-      
+
       <main className={isAttendeeSpace ? "" : "pt-24 lg:pt-[100px] flex-1"}>
         {/* Back Button */}
         <div className={isAttendeeSpace ? "mb-6" : "max-w-[1400px] mx-auto px-6 mb-6"}>
@@ -273,13 +273,13 @@ const EventDetailPage = () => {
         {/* Hero Section */}
         <div className={isAttendeeSpace ? "mb-12" : "max-w-[1400px] mx-auto px-6 mb-12"}>
           <div className="relative rounded-[40px] overflow-hidden h-[400px] lg:h-[500px] shadow-2xl">
-            <img 
-              src={event.bannerUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1600"} 
-              alt={event.title} 
+            <img
+              src={event.bannerUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1600"}
+              alt={event.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end p-8 lg:p-16">
-              <motion.div 
+              <Motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -291,7 +291,7 @@ const EventDetailPage = () => {
                 <h1 className="text-4xl lg:text-5xl font-black text-white mb-4 leading-tight">
                   {event.title}
                 </h1>
-              </motion.div>
+              </Motion.div>
             </div>
           </div>
         </div>
@@ -389,7 +389,7 @@ const EventDetailPage = () => {
 
             {/* Right Sidebar */}
             <aside className="lg:w-[420px] w-full relative">
-              <div 
+              <div
                 className="lg:sticky lg:top-[120px] space-y-8 z-40"
                 style={{ alignSelf: 'flex-start', height: 'fit-content' }}
               >
@@ -397,14 +397,14 @@ const EventDetailPage = () => {
                 <div className="bg-white p-8 rounded-[40px] shadow-xl border border-slate-100">
                   <AnimatePresence mode="wait">
                     {flowState === 'selection' && (
-                      <motion.div
+                      <Motion.div
                         key="selection"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                       >
                         <h3 className="text-xl font-black text-slate-900 mb-6">Đăng ký vé</h3>
-                        
+
                         <div className="space-y-4 mb-6">
                           {event.ticketTypes && event.ticketTypes.length > 0 ? (
                             (() => {
@@ -444,9 +444,9 @@ const EventDetailPage = () => {
                                       <span className="text-xs font-semibold text-slate-500">
                                         {selectedAvailable <= 10 ? `Chỉ còn ${selectedAvailable} vé` : `Còn trống: ${selectedAvailable} vé`}
                                       </span>
-                                      
+
                                       <div className="flex items-center gap-3">
-                                        <button 
+                                        <button
                                           onClick={() => setTicketQuantity(prev => Math.max(1, prev - 1))}
                                           disabled={event.isSalesActive === false}
                                           className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -454,7 +454,7 @@ const EventDetailPage = () => {
                                           -
                                         </button>
                                         <span className="font-black text-slate-800 text-sm w-4 text-center">{ticketQuantity}</span>
-                                        <button 
+                                        <button
                                           onClick={() => setTicketQuantity(prev => Math.min(selectedAvailable, prev + 1))}
                                           disabled={event.isSalesActive === false}
                                           className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -511,19 +511,19 @@ const EventDetailPage = () => {
                               Đăng ký ngay
                             </button>
                           ) : (
-                            <button 
+                            <button
                               onClick={() => navigate('/login', { state: { from: location.pathname } })}
                               className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-slate-800 transition"
                             >
                               Đăng nhập để đăng ký
                             </button>
                           )}
-                          
+
                           <button
                             onClick={toggleFavorite}
                             className={`w-14 h-14 rounded-2xl border flex items-center justify-center shrink-0 transition-all active:scale-90 ${
-                              isFavorite 
-                                ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-sm shadow-rose-100/50' 
+                              isFavorite
+                                ? 'bg-rose-50 border-rose-200 text-rose-500 shadow-sm shadow-rose-100/50'
                                 : 'bg-white border-slate-200 text-slate-400 hover:bg-slate-50'
                             }`}
                             title={isFavorite ? "Bỏ yêu thích" : "Yêu thích sự kiện"}
@@ -531,11 +531,11 @@ const EventDetailPage = () => {
                             <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
                           </button>
                         </div>
-                      </motion.div>
+                      </Motion.div>
                     )}
 
                     {flowState === 'registering' && (
-                      <motion.div
+                      <Motion.div
                         key="registering"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -547,11 +547,11 @@ const EventDetailPage = () => {
                           <h4 className="font-bold text-slate-800">Đang khởi tạo đơn hàng</h4>
                           <p className="text-slate-400 text-xs mt-1">Vui lòng chờ trong giây lát...</p>
                         </div>
-                      </motion.div>
+                      </Motion.div>
                     )}
 
                     {flowState === 'payment_pending' && activeRegistration && (
-                      <motion.div
+                      <Motion.div
                         key="payment"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -597,11 +597,11 @@ const EventDetailPage = () => {
                             Quay lại
                           </button>
                         </div>
-                      </motion.div>
+                      </Motion.div>
                     )}
 
                     {flowState === 'confirming' && (
-                      <motion.div
+                      <Motion.div
                         key="confirming"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -613,11 +613,11 @@ const EventDetailPage = () => {
                           <h4 className="font-bold text-slate-800">Đang xác thực giao dịch</h4>
                           <p className="text-slate-400 text-xs mt-1">Hệ thống đang lập hóa đơn và vé điện tử...</p>
                         </div>
-                      </motion.div>
+                      </Motion.div>
                     )}
 
                     {flowState === 'success' && activeRegistration && (
-                      <motion.div
+                      <Motion.div
                         key="success"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -634,9 +634,9 @@ const EventDetailPage = () => {
                         {activeRegistration.tickets && activeRegistration.tickets.map((t, idx) => (
                           <div key={t.id || idx} className="border-t border-dashed border-slate-200 pt-6 mt-6">
                             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center">
-                              <img 
-                                src={t.qrImageUrl || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${t.qrCodeToken || t.ticketCode}`} 
-                                alt="Vé QR" 
+                              <img
+                                src={t.qrImageUrl || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${t.qrCodeToken || t.ticketCode}`}
+                                alt="Vé QR"
                                 className="w-40 h-40 bg-white p-2 rounded-2xl shadow-sm mb-4"
                               />
                               <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mã vé</p>
@@ -654,7 +654,7 @@ const EventDetailPage = () => {
                         >
                           Đi đến Vé của tôi
                         </button>
-                      </motion.div>
+                      </Motion.div>
                     )}
                   </AnimatePresence>
                 </div>
@@ -662,13 +662,13 @@ const EventDetailPage = () => {
                 {/* Location Card */}
                 <div className="bg-white rounded-[40px] overflow-hidden shadow-md border border-slate-100">
                   <div className="h-48 bg-slate-200 relative">
-                    <img 
-                      src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=400" 
-                      alt="Map" 
+                    <img
+                      src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=400"
+                      alt="Map"
                       className="w-full h-full object-cover opacity-80"
                     />
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <a 
+                      <a
                         href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.venue} ${event.address} ${event.city}`)}`}
                         target="_blank"
                         rel="noreferrer"

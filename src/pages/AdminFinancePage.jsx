@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Cell
@@ -84,7 +84,7 @@ const AdminFinancePage = () => {
   };
 
   const confirmPayoutApproval = () => {
-    setPayoutRequests(prev => prev.map(req => 
+    setPayoutRequests(prev => prev.map(req =>
       req.id === selectedPayout.id ? { ...req, status: 'Đã thanh toán' } : req
     ));
     showToast(`Đã phê duyệt và chuyển khoản ${selectedPayout.amount.toLocaleString()}đ cho đối tác!`, 'success');
@@ -101,7 +101,7 @@ const AdminFinancePage = () => {
       showToast('Vui lòng nhập lý do từ chối yêu cầu rút tiền!', 'error');
       return;
     }
-    setPayoutRequests(prev => prev.map(req => 
+    setPayoutRequests(prev => prev.map(req =>
       req.id === selectedPayout.id ? { ...req, status: 'Từ chối', reason: rejectReason } : req
     ));
     showToast(`Đã từ chối yêu cầu giải ngân của ${selectedPayout.organizer}!`, 'error');
@@ -122,16 +122,16 @@ const AdminFinancePage = () => {
 
   return (
     <div className="p-8 max-w-[1600px] mx-auto animate-in fade-in duration-700">
-      
+
       {/* ── Page Header ── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Quản trị Tài chính & Dòng tiền</h1>
           <p className="text-slate-500 max-w-2xl font-medium">Theo dõi tổng doanh thu bán vé toàn sàn, quản lý luồng tiền đối tác, và phê duyệt giải ngân tự động nhanh chóng.</p>
         </div>
-        
+
         {/* CSV Export Button (Beautiful Green/Blue layout) */}
-        <button 
+        <button
           onClick={handleExportCSV}
           className="flex items-center gap-2 bg-emerald-600 text-white px-7 py-3.5 rounded-full font-bold border-none shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-600/30 transition-all active:scale-95 duration-200 cursor-pointer whitespace-nowrap"
         >
@@ -186,7 +186,7 @@ const AdminFinancePage = () => {
 
       {/* ── Cash Flow Chart & Payout Approvals Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        
+
         {/* Gross Volume Chart */}
         <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col justify-between">
           <div className="mb-6 flex justify-between items-center">
@@ -205,7 +205,7 @@ const AdminFinancePage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={monthlyCashflow} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -258,17 +258,17 @@ const AdminFinancePage = () => {
                     </div>
                     <span className="text-indigo-600 font-black text-sm whitespace-nowrap">{req.amount.toLocaleString()}đ</span>
                   </div>
-                  
+
                   <div className="h-px bg-slate-200/50" />
-                  
+
                   <div className="flex items-center justify-between gap-2">
-                    <button 
+                    <button
                       onClick={() => handleRejectPayout(req)}
                       className="flex-1 bg-white hover:bg-rose-50 text-rose-600 text-xs font-bold py-2 rounded-xl border border-slate-200 transition-all cursor-pointer"
                     >
                       Từ chối
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleApprovePayout(req)}
                       className="flex-1 bg-primary hover:bg-primary-hover text-white text-xs font-bold py-2 rounded-xl transition-all cursor-pointer shadow-md shadow-primary/20"
                     >
@@ -284,21 +284,21 @@ const AdminFinancePage = () => {
 
       {/* ── Platform Transaction History Log ── */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        
+
         {/* Table header and filters */}
         <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
           <div>
             <h3 className="text-lg font-bold text-slate-950">Nhật ký Giao dịch Hệ thống</h3>
             <p className="text-xs text-slate-400 font-semibold mt-0.5">Lịch sử chi tiết toàn bộ các luồng tiền phát sinh trên toàn bộ nền tảng</p>
           </div>
-          
+
           <div className="flex flex-wrap items-center gap-3">
             {/* Search Input */}
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <input 
-                type="text" 
-                placeholder="Tìm mã GD, tên sự kiện..." 
+              <input
+                type="text"
+                placeholder="Tìm mã GD, tên sự kiện..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="bg-white border border-slate-200 rounded-full py-2.5 pl-10 pr-4 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all w-60"
@@ -317,8 +317,8 @@ const AdminFinancePage = () => {
                   key={filter.id}
                   onClick={() => setActiveFilter(filter.id)}
                   className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all duration-200
-                    ${activeFilter === filter.id 
-                      ? 'bg-white text-slate-900 shadow-sm' 
+                    ${activeFilter === filter.id
+                      ? 'bg-white text-slate-900 shadow-sm'
                       : 'text-slate-500 hover:text-slate-900'}`}
                 >
                   {filter.label}
@@ -400,7 +400,7 @@ const AdminFinancePage = () => {
       {/* ── Toasts Alert ── */}
       <AnimatePresence>
         {toast.visible && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20, x: 20 }}
             animate={{ opacity: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: 20 }}
@@ -416,7 +416,7 @@ const AdminFinancePage = () => {
               )}
             </div>
             <p className="text-sm font-black tracking-tight">{toast.message}</p>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
@@ -424,11 +424,11 @@ const AdminFinancePage = () => {
       <AnimatePresence>
         {selectedPayout && !showRejectModal && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedPayout(null)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedPayout(null)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
+            <Motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -443,13 +443,13 @@ const AdminFinancePage = () => {
               </div>
 
               <div className="p-8 space-y-6">
-                
+
                 {/* Bank account details card */}
                 <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xl relative overflow-hidden">
                   <div className="absolute right-0 top-0 translate-y-2 -translate-x-2 opacity-5">
                     <Building className="w-32 h-32 text-white" />
                   </div>
-                  
+
                   <div className="flex justify-between items-start mb-6">
                     <div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ngân hàng thụ hưởng</p>
@@ -465,7 +465,7 @@ const AdminFinancePage = () => {
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Số tài khoản</p>
                       <div className="flex items-center gap-2">
                         <span className="text-2xl font-black tracking-widest text-white">{selectedPayout.bankAccount}</span>
-                        <button 
+                        <button
                           onClick={() => {
                             navigator.clipboard.writeText(selectedPayout.bankAccount);
                             showToast('Đã sao chép Số tài khoản thành công!');
@@ -500,20 +500,20 @@ const AdminFinancePage = () => {
               </div>
 
               <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                <button 
+                <button
                   onClick={() => setSelectedPayout(null)}
                   className="px-6 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 transition-all rounded-xl cursor-pointer"
                 >
                   Quay lại
                 </button>
-                <button 
+                <button
                   onClick={confirmPayoutApproval}
                   className="px-8 py-3.5 bg-primary text-white font-black text-sm rounded-xl hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 cursor-pointer"
                 >
                   Xác nhận đã chuyển tiền
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -522,11 +522,11 @@ const AdminFinancePage = () => {
       <AnimatePresence>
         {selectedPayout && showRejectModal && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setSelectedPayout(null); setShowRejectModal(false); }} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setSelectedPayout(null); setShowRejectModal(false); }} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
+            <Motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -547,31 +547,31 @@ const AdminFinancePage = () => {
 
                 <div className="space-y-2">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Lý do từ chối (Gửi đến Nhà tổ chức)</label>
-                  <textarea 
-                    rows={4} 
-                    value={rejectReason} 
-                    onChange={e => setRejectReason(e.target.value)} 
-                    placeholder="Nhập lý do chi tiết (ví dụ: Sự kiện bị người dùng báo cáo vi phạm quy chế hoặc hóa đơn tài chính của sự kiện chưa hoàn tất...)" 
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-rose-500/10 focus:border-rose-600 transition-all outline-none resize-none" 
+                  <textarea
+                    rows={4}
+                    value={rejectReason}
+                    onChange={e => setRejectReason(e.target.value)}
+                    placeholder="Nhập lý do chi tiết (ví dụ: Sự kiện bị người dùng báo cáo vi phạm quy chế hoặc hóa đơn tài chính của sự kiện chưa hoàn tất...)"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-rose-500/10 focus:border-rose-600 transition-all outline-none resize-none"
                   />
                 </div>
               </div>
 
               <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                <button 
+                <button
                   onClick={() => { setSelectedPayout(null); setShowRejectModal(false); }}
                   className="px-6 py-3.5 bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 transition-all rounded-xl cursor-pointer"
                 >
                   Quay lại
                 </button>
-                <button 
+                <button
                   onClick={confirmPayoutRejection}
                   className="px-8 py-3.5 bg-rose-600 text-white font-black text-sm rounded-xl hover:bg-rose-700 transition-all shadow-xl shadow-rose-100 cursor-pointer"
                 >
                   Xác nhận Từ chối
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend
 } from 'recharts';
@@ -19,6 +19,7 @@ const mockRevenueData = [
   { month: 'T6', revenue: 2390, expenses: 3800 },
   { month: 'T7', revenue: 3490, expenses: 4300 },
 ];
+void mockRevenueData;
 
 const mockEventsSummary = [
   { id: 1, name: 'Lễ hội Âm nhạc Mùa Hè', date: '2026-06-15', revenue: 150000000, tickets: 1200, status: 'Hoàn thành' },
@@ -26,6 +27,7 @@ const mockEventsSummary = [
   { id: 3, name: 'Triển lãm Nghệ thuật Đương đại', date: '2026-08-10', revenue: 32000000, tickets: 300, status: 'Đang mở bán' },
   { id: 4, name: 'Giải chạy Marathon City', date: '2026-09-05', revenue: 0, tickets: 0, status: 'Sắp diễn ra' }
 ];
+void mockEventsSummary;
 
 const mockRecentTransactions = [
   { id: 'TRX-101', type: 'Thu nhập', amount: 500000, date: '2026-05-03 10:30', description: 'Bán vé VIP (Tech Summit)' },
@@ -37,6 +39,7 @@ const mockRecentTransactions = [
   { id: 'TRX-107', type: 'Rút tiền', amount: -5000000, date: '2026-04-27 08:30', description: 'Phí quảng cáo Facebook' },
   { id: 'TRX-108', type: 'Thu nhập', amount: 450000, date: '2026-04-26 13:20', description: 'Bán vé Early Bird (Art Expo)' },
 ];
+void mockRecentTransactions;
 
 const OrganizerFinancePage = () => {
   const navigate = useNavigate();
@@ -86,7 +89,7 @@ const OrganizerFinancePage = () => {
           availableBalance: overviewRes.data?.netRevenue || 0,
           totalTicketsSold: mappedEvents.reduce((sum, e) => sum + e.tickets, 0)
         });
-        
+
         setTransactions(transRes.data.map(t => ({
            id: t.id,
            type: t.type === 'INCOME' ? 'Thu nhập' : t.type === 'WITHDRAWAL' ? 'Rút tiền' : 'Hoàn tiền',
@@ -135,7 +138,7 @@ const OrganizerFinancePage = () => {
             const d = new Date();
             d.setDate(today.getDate() - i);
             const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-            
+
             const matchRev = revRes.data.find(r => r.groupLabel === dateStr);
             const rev = matchRev ? matchRev.revenue : 0;
 
@@ -204,7 +207,7 @@ const OrganizerFinancePage = () => {
             Quản lý và theo dõi doanh thu tất cả các sự kiện
           </p>
         </div>
-        <button 
+        <button
           onClick={() => setIsWithdrawalModalOpen(true)}
           className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-all shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 flex items-center gap-2"
         >
@@ -220,7 +223,7 @@ const OrganizerFinancePage = () => {
           { label: 'Số Dư Khả Dụng', value: formatCurrency(overview.availableBalance || 0), subtitle: 'Sẵn sàng để rút', icon: 'payments', color: 'emerald', bg: 'bg-emerald-50', text: 'text-emerald-600' },
           { label: 'Tổng Vé Bán Ra', value: overview.totalTicketsSold?.toLocaleString() || '0', trend: 5, icon: 'local_activity', color: 'amber', bg: 'bg-amber-50', text: 'text-amber-600' },
         ].map((stat, index) => (
-          <motion.div
+          <Motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -243,7 +246,7 @@ const OrganizerFinancePage = () => {
               )}
             </div>
             <h3 className="text-3xl font-extrabold text-slate-900 dark:text-white mt-1">{stat.value}</h3>
-          </motion.div>
+          </Motion.div>
         ))}
       </div>
 
@@ -255,7 +258,7 @@ const OrganizerFinancePage = () => {
             <div className="flex items-center gap-4">
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Thống kê tài chính</h2>
               <div className="relative group">
-                <select 
+                <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                   className="appearance-none bg-slate-50 dark:bg-slate-800 border-none rounded-lg py-1 pl-3 pr-8 text-xs font-bold text-slate-600 dark:text-slate-400 focus:ring-2 focus:ring-indigo-500/20 cursor-pointer outline-none"
@@ -269,7 +272,7 @@ const OrganizerFinancePage = () => {
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                <select 
+                <select
                   value={timeRange}
                   onChange={(e) => setTimeRange(e.target.value)}
                   className="bg-transparent border-none text-xs font-bold text-slate-600 dark:text-slate-400 focus:ring-0 cursor-pointer outline-none px-2"
@@ -279,13 +282,13 @@ const OrganizerFinancePage = () => {
                 </select>
               </div>
               <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                <button 
+                <button
                   onClick={() => setActiveChartTab('revenue')}
                 className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeChartTab === 'revenue' ? 'bg-white dark:bg-slate-700 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
                 Doanh thu
               </button>
-              <button 
+              <button
                 onClick={() => setActiveChartTab('expenses')}
                 className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${activeChartTab === 'expenses' ? 'bg-white dark:bg-slate-700 text-rose-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
               >
@@ -294,7 +297,7 @@ const OrganizerFinancePage = () => {
             </div>
             </div>
           </div>
-          
+
           <div className="h-[300px] w-full relative">
             {chartLoading ? (
               <div className="absolute inset-0 flex items-center justify-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-[2px] z-10 rounded-xl">
@@ -304,7 +307,7 @@ const OrganizerFinancePage = () => {
                 </div>
               </div>
             ) : null}
-            
+
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -314,22 +317,22 @@ const OrganizerFinancePage = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" strokeOpacity={0.5} />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}} 
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 600}}
                   dy={10}
                   interval={timeRange === 'monthly' ? 4 : 0}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{fill: '#94a3b8', fontSize: 12, fontWeight: 600}}
                   width={80}
                   tickFormatter={(val) => val >= 1000000000 ? (val / 1000000000) + 'B' : val >= 1000000 ? (val / 1000000) + 'M' : val >= 1000 ? (val / 1000) + 'k' : val}
                 />
-                <Tooltip 
+                <Tooltip
                   cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '5 5' }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
@@ -349,13 +352,13 @@ const OrganizerFinancePage = () => {
                     return null;
                   }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey={activeChartTab === 'revenue' ? 'revenue' : 'expenses'} 
-                  stroke={activeChartTab === 'revenue' ? '#6366f1' : '#f43f5e'} 
-                  strokeWidth={4} 
-                  fillOpacity={1} 
-                  fill="url(#colorValue)" 
+                <Area
+                  type="monotone"
+                  dataKey={activeChartTab === 'revenue' ? 'revenue' : 'expenses'}
+                  stroke={activeChartTab === 'revenue' ? '#6366f1' : '#f43f5e'}
+                  strokeWidth={4}
+                  fillOpacity={1}
+                  fill="url(#colorValue)"
                   dot={{ r: 4, fill: activeChartTab === 'revenue' ? '#6366f1' : '#f43f5e', strokeWidth: 2, stroke: '#fff' }}
                   activeDot={{ r: 6, strokeWidth: 0 }}
                 />
@@ -368,7 +371,7 @@ const OrganizerFinancePage = () => {
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Giao dịch gần đây</h2>
-            <button 
+            <button
               onClick={() => setIsTransactionModalOpen(true)}
               className="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline"
             >
@@ -476,7 +479,7 @@ const OrganizerFinancePage = () => {
                       {formatCurrency(event.revenue)}
                     </td>
                     <td className="py-4 px-4 text-center">
-                      <button 
+                      <button
                         onClick={() => navigate(`/organizer/finance/${event.id}`)}
                         className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50 rounded-lg text-sm font-medium transition-colors"
                       >
@@ -492,13 +495,13 @@ const OrganizerFinancePage = () => {
       </div>
 
       {/* Transaction History Modal */}
-      <TransactionHistoryModal 
+      <TransactionHistoryModal
         isOpen={isTransactionModalOpen}
         onClose={() => setIsTransactionModalOpen(false)}
         transactions={transactions}
       />
       {/* Withdrawal Modal */}
-      <WithdrawalModal 
+      <WithdrawalModal
         isOpen={isWithdrawalModalOpen}
         onClose={() => setIsWithdrawalModalOpen(false)}
         availableBalance={overview.availableBalance || 0}

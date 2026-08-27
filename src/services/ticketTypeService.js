@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../lib/axios';
 
 export const ticketTypeService = {
   getTicketTypes: (eventId) => api.get(`/organizer/events/${eventId}/ticket-types`),

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { dashboardService } from '../services/dashboardService';
 import { eventService } from '../services/eventService';
+import { reportService } from '../services/reportService';
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const templates = [
@@ -184,7 +185,7 @@ const GenerateReportModal = ({ template, onClose }) => {
   };
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -192,7 +193,7 @@ const GenerateReportModal = ({ template, onClose }) => {
       style={{ background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(6px)' }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, scale: 0.94, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 20 }}
@@ -221,7 +222,7 @@ const GenerateReportModal = ({ template, onClose }) => {
         <AnimatePresence mode="wait">
           {done ? (
             /* ── Success State ── */
-            <motion.div
+            <Motion.div
               key="done"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -249,10 +250,10 @@ const GenerateReportModal = ({ template, onClose }) => {
                   Tải ngay
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           ) : (
             /* ── Config State ── */
-            <motion.div key="config" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Motion.div key="config" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
               <div className="px-6 py-5 space-y-6">
 
                 {/* Chọn định dạng */}
@@ -306,7 +307,7 @@ const GenerateReportModal = ({ template, onClose }) => {
                   </div>
                   <AnimatePresence>
                     {dateRange === 'custom' && (
-                      <motion.div
+                      <Motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
@@ -332,7 +333,7 @@ const GenerateReportModal = ({ template, onClose }) => {
                             />
                           </div>
                         </div>
-                      </motion.div>
+                      </Motion.div>
                     )}
                   </AnimatePresence>
                 </div>
@@ -364,11 +365,11 @@ const GenerateReportModal = ({ template, onClose }) => {
                   )}
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
-    </motion.div>
+      </Motion.div>
+    </Motion.div>
   );
 };
 
@@ -413,14 +414,14 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
 
   const generateAiReportContent = () => {
     const promptLower = promptText.toLowerCase();
-    
+
     // 1. Dữ liệu thực tế kéo từ Database (thời gian thực)
     const totalRev = kpiOverview?.totalRevenue ? Number(kpiOverview.totalRevenue) : 186200000;
     const formattedRev = totalRev.toLocaleString() + ' ₫';
-    
+
     const cartConvRate = funnelOverview?.cartConversionRate ? Number(funnelOverview.cartConversionRate) : 5.4;
     const cartAbanRate = funnelOverview?.cartAbandonmentRate ? Number(funnelOverview.cartAbandonmentRate) : 34.2;
-    
+
     const rawAvgOrderValue = funnelOverview?.averageOrderValue ? Number(funnelOverview.averageOrderValue) : 450000;
     const formattedAvgOrderValue = rawAvgOrderValue.toLocaleString() + ' ₫';
 
@@ -428,13 +429,13 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
     const totalAttendeesCount = kpiOverview?.totalAttendees || 345;
 
     // 2. Phân tách và quy đổi Số mục tiêu từ prompt tự do (hỗ trợ triệu, tỷ, M, k, v.v.)
-    const numbersInPrompt = promptText.match(/\b\d+(?:[\.,]\d+)?\b/g);
+    const numbersInPrompt = promptText.match(/\b\d+(?:[.,]\d+)?\b/g);
     let parsedTarget = null;
     let targetType = 'attendees'; // 'attendees' hoặc 'revenue'
-    
+
     if (numbersInPrompt && numbersInPrompt.length > 0) {
       let rawNum = parseFloat(numbersInPrompt[0].replace(/,/g, ''));
-      
+
       // Kiểm tra đơn vị đi kèm trong prompt tự do
       const hasMillionWord = promptLower.includes('triệu') || promptLower.includes('tr') || promptLower.includes('m');
       const hasBillionWord = promptLower.includes('tỷ') || promptLower.includes('b');
@@ -478,14 +479,14 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
       const actualValue = targetType === 'revenue' ? totalRev : totalAttendeesCount;
       const formattedActual = targetType === 'revenue' ? formattedRev : `${totalAttendeesCount.toLocaleString()} lượt khách`;
       const formattedTarget = targetType === 'revenue' ? `${parsedTarget.toLocaleString()} ₫` : `${parsedTarget.toLocaleString()} khách`;
-      
+
       const pct = ((actualValue / parsedTarget) * 100).toFixed(1);
       const isMet = actualValue >= parsedTarget;
       const difference = Math.abs(parsedTarget - actualValue);
       const formattedDiff = targetType === 'revenue' ? `${difference.toLocaleString()} ₫` : `${difference.toLocaleString()} lượt`;
 
       title = `Phân tích AI: Đánh giá Hiệu suất Đạt Mục tiêu (${targetType === 'revenue' ? 'Doanh thu' : 'Lượng khách'})`;
-      
+
       summaryHtml = `
         <div class="grid grid-cols-3 gap-3 mb-6">
           <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-center">
@@ -508,7 +509,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
           <p>🤖 <strong>Xử lý yêu cầu tùy chỉnh</strong>: Trợ lý AI đã ghi nhận yêu cầu đối chiếu số liệu của bạn với mốc chỉ tiêu là <strong>${formattedTarget}</strong>.</p>
           <p>📌 <strong>Đánh giá tiến độ thực tế</strong>: Hiện nay, cơ sở dữ liệu thật ghi nhận giá trị thực tế đạt được là <strong>${formattedActual}</strong> trên toàn bộ <strong>${totalEventsCount} sự kiện vận hành</strong>. Chỉ số này phản ánh mức độ hoàn thành đạt <strong>${pct}%</strong> kế hoạch đề ra.</p>
           <p>📌 <strong>Đánh giá khoảng cách chỉ tiêu</strong>: ${
-            isMet 
+            isMet
             ? `🎉 <strong>Xuất sắc!</strong> Kết quả thực tế đã chính thức vượt chỉ tiêu đề ra là <strong>${formattedDiff}</strong> (hoàn thành vượt mức chỉ tiêu đạt ${pct}%).`
             : `⚠️ <strong>Cần tập trung thêm:</strong> Hệ thống phân tích toán học cho thấy bạn vẫn còn thiếu khoảng cách là <strong>${formattedDiff}</strong> để cán đích hoàn thành 100% mục tiêu ban đầu.`
           }</p>
@@ -516,7 +517,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
         </div>
       `;
 
-      recommendations = isMet 
+      recommendations = isMet
         ? [
             `Thiết lập mục tiêu mới cao hơn 15% cho quý tiếp theo nhằm khai thác tối đa tiềm năng thị trường.`,
             `Chạy chiến dịch tri ân triệt để cho nhóm khách hàng đóng góp trực tiếp vào thành tích vượt chỉ tiêu này.`,
@@ -531,7 +532,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
     } else if (isRevenue) {
       // KỊCH BẢN 2: Phân tích sâu chuyên đề Doanh thu và Tài chính
       title = 'Báo cáo AI Chuyên sâu: Hiệu suất Doanh thu & Dòng tiền thực tế';
-      
+
       summaryHtml = `
         <div class="grid grid-cols-3 gap-3 mb-6">
           <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-center">
@@ -568,7 +569,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
       const estimatedLoss = (totalRev * (cartAbanRate / 100)).toLocaleString();
 
       title = 'Báo cáo AI Chuyên sâu: Tối ưu Quy trình Thanh toán & Giảm Bỏ Giỏ';
-      
+
       summaryHtml = `
         <div class="grid grid-cols-3 gap-3 mb-6">
           <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-center">
@@ -603,7 +604,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
     } else if (isAttendance) {
       // KỊCH BẢN 4: Phân tích chuyên sâu Lượt tham dự và Check-in
       title = 'Báo cáo AI Chuyên sâu: Lưu lượng Khách mời & Hoạt động Check-in';
-      
+
       summaryHtml = `
         <div class="grid grid-cols-3 gap-3 mb-6">
           <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-center">
@@ -638,7 +639,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
     } else {
       // KỊCH BẢN 5: Báo cáo tự do xử lý linh hoạt mọi câu lệnh tùy chỉnh khác của người dùng
       title = `Phân tích AI theo Yêu cầu: "${promptText.length > 40 ? promptText.substring(0, 40) + '...' : promptText}"`;
-      
+
       summaryHtml = `
         <div class="grid grid-cols-3 gap-3 mb-6">
           <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 text-center">
@@ -704,7 +705,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
               <p><strong>Công nghệ phân tích:</strong> Trợ lý Trí tuệ Nhân tạo EventHub AI (Deep Insights v2.0)</p>
               <p><strong>Tài khoản yêu cầu:</strong> nbao76296@gmail.com</p>
             </div>
-            
+
             <div class="section-title">Chỉ số thống kê chính</div>
             <div class="grid-box">
               ${resultReport.summaryHtml.replace(/grid grid-cols-3 gap-3 mb-6/g, '').replace(/bg-[a-z]+-50 border border-[a-z]+-100 rounded-2xl p-4 text-center/g, 'box').replace(/text-\[10px\] font-black text-[a-z]+-500 uppercase tracking-widest block/g, 'box-label').replace(/text-xl font-black text-[a-z]+-700 block mt-1/g, 'box-val')}
@@ -731,7 +732,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
   };
 
   return (
-    <motion.div
+    <Motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -739,7 +740,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
       style={{ background: 'rgba(15,23,42,0.45)', backdropFilter: 'blur(8px)' }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, scale: 0.94, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.94, y: 30 }}
@@ -769,7 +770,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
           <AnimatePresence mode="wait">
             {generating ? (
               /* ── Loading / Generating State ── */
-              <motion.div
+              <Motion.div
                 key="loading"
                 initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -785,7 +786,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
                 </div>
 
                 <h4 className="font-black text-slate-800 text-base mb-4">EventHub AI đang làm việc...</h4>
-                
+
                 <div className="w-full max-w-md bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3.5 text-left">
                   {steps.map((step, idx) => {
                     const isActive = currentStep === idx;
@@ -808,10 +809,10 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
                     );
                   })}
                 </div>
-              </motion.div>
+              </Motion.div>
             ) : resultReport ? (
               /* ── AI Report Output Result State ── */
-              <motion.div
+              <Motion.div
                 key="result"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -867,10 +868,10 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
                     In / Tải PDF báo cáo AI
                   </button>
                 </div>
-              </motion.div>
+              </Motion.div>
             ) : (
               /* ── Prompt Input State ── */
-              <motion.div key="input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+              <Motion.div key="input" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                 <div>
                   <label className="text-[11px] font-black uppercase tracking-widest text-slate-400 block mb-2">Chọn nguồn dữ liệu sự kiện</label>
                   <select
@@ -901,7 +902,7 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
                       Dữ liệu thời gian thực
                     </span>
                   </div>
-                  
+
                   <textarea
                     rows={4}
                     value={promptText}
@@ -944,12 +945,12 @@ const AiReportGeneratorModal = ({ onClose, activeEvents, kpiOverview, funnelOver
                     Bắt đầu Phân tích AI
                   </button>
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
           </AnimatePresence>
         </div>
-      </motion.div>
-    </motion.div>
+      </Motion.div>
+    </Motion.div>
   );
 };
 
@@ -965,10 +966,11 @@ const OrganizerReportTemplatesPage = () => {
     activity: false,
   });
   const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const [activeEvents, setActiveEvents] = useState([]);
   const [kpiOverview, setKpiOverview] = useState(null);
-  const [funnelOverview, setFunnelOverview] = useState(null);
+  const funnelOverview = null;
 
   useEffect(() => {
     // Fetch live active events using standard event service for accurate id/title mapping
@@ -981,7 +983,7 @@ const OrganizerReportTemplatesPage = () => {
       .catch(err => console.error("Error fetching events for templates:", err));
 
     // Fetch live KPI Summary
-    dashboardService.getKpiSummary('timePeriod=30')
+    dashboardService.getOrganizerFinance()
       .then(res => {
         if (res.data) {
           setKpiOverview(res.data);
@@ -989,19 +991,27 @@ const OrganizerReportTemplatesPage = () => {
       })
       .catch(err => console.error("Error fetching KPI overview:", err));
 
-    // Fetch live Conversion Funnel
-    dashboardService.getConversionFunnel('timePeriod=30')
-      .then(res => {
-        if (res.data) {
-          setFunnelOverview(res.data);
-        }
-      })
-      .catch(err => console.error("Error fetching Funnel overview:", err));
   }, []);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     setExporting(true);
-    setTimeout(() => setExporting(false), 2000);
+    setExportError('');
+    try {
+      const format = selectedFormat.toLowerCase();
+      const response = await reportService.exportFinancial(format);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `organizer-financial-report.${format === 'excel' ? 'xlsx' : format}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      setExportError(error.apiError?.message || error.message || 'Không thể xuất báo cáo tài chính.');
+    } finally {
+      setExporting(false);
+    }
   };
 
   const toggleData = (key) => setDataToggles(prev => ({ ...prev, [key]: !prev[key] }));
@@ -1009,7 +1019,7 @@ const OrganizerReportTemplatesPage = () => {
   return (
     <div className="p-4 lg:p-6 max-w-[1600px] mx-auto bg-[#f8fafc] min-h-screen">
       {/* ── Page Header ── */}
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4"
@@ -1032,19 +1042,20 @@ const OrganizerReportTemplatesPage = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-white text-slate-700 text-sm font-bold rounded-xl shadow-sm hover:shadow-md hover:border-indigo-200 transition-all">
+          <button disabled title="Chưa có owner endpoint trong Phase 11" className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 bg-slate-100 text-slate-400 text-sm font-bold rounded-xl cursor-not-allowed">
             <span className="material-symbols-outlined text-[18px] text-slate-500">upload_file</span>
             Nhập mẫu mới
           </button>
-          <button 
-            onClick={() => setShowAiModal(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-bold rounded-xl shadow-md shadow-indigo-200 hover:shadow-lg hover:shadow-indigo-300 transition-all hover:-translate-y-0.5"
+          <button
+            disabled
+            title="AI report generation chưa có owner contract trong Phase 11"
+            className="flex items-center gap-2 px-5 py-2.5 bg-slate-300 text-slate-500 text-sm font-bold rounded-xl cursor-not-allowed"
           >
             <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
             Tạo báo cáo AI
           </button>
         </div>
-      </motion.div>
+      </Motion.div>
 
       {/* ── Main Content: 2 columns ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
@@ -1053,7 +1064,7 @@ const OrganizerReportTemplatesPage = () => {
           {/* Template Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {templates.filter(t => !t.wide).map((t, i) => (
-              <motion.div
+              <Motion.div
                 key={t.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1074,19 +1085,20 @@ const OrganizerReportTemplatesPage = () => {
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">{t.desc}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedTemplate(t)}
-                  className="mt-auto flex items-center gap-1 text-indigo-600 text-xs font-black hover:gap-2 transition-all group/btn"
+                  disabled
+                  title="Template report này chưa có owner endpoint trong Phase 11"
+                  className="mt-auto flex items-center gap-1 text-slate-400 text-xs font-black cursor-not-allowed group/btn"
                 >
                   {t.cta}
                   <span className="material-symbols-outlined text-[14px] transition-transform group-hover/btn:translate-x-0.5">arrow_forward</span>
                 </button>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
 
           {/* Wide template card */}
-          {templates.filter(t => t.wide).map((t, i) => (
-            <motion.div
+          {templates.filter(t => t.wide).map((t) => (
+            <Motion.div
               key={t.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -1106,17 +1118,18 @@ const OrganizerReportTemplatesPage = () => {
                   <p className="text-xs text-slate-500 font-medium leading-relaxed">{t.desc}</p>
                 </div>
                 <button
-                  onClick={() => setSelectedTemplate(t)}
-                  className="shrink-0 px-5 py-2.5 bg-slate-900 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 transition-colors"
+                  disabled
+                  title="Template report này chưa có owner endpoint trong Phase 11"
+                  className="shrink-0 px-5 py-2.5 bg-slate-200 text-slate-400 text-sm font-bold rounded-xl cursor-not-allowed"
                 >
                   {t.cta}
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           ))}
 
           {/* Recent Reports */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -1130,7 +1143,7 @@ const OrganizerReportTemplatesPage = () => {
             </div>
             <div className="space-y-2">
               {recentReports.map((r, i) => (
-                <motion.div
+                <Motion.div
                   key={r.id}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -1151,16 +1164,16 @@ const OrganizerReportTemplatesPage = () => {
                     {r.status === 'done' ? 'Hoàn thành' : 'Đang xử lý'}
                   </span>
                   <span className="material-symbols-outlined text-slate-300 text-[18px] group-hover:text-slate-400 transition-colors">more_horiz</span>
-                </motion.div>
+                </Motion.div>
               ))}
             </div>
-          </motion.div>
+          </Motion.div>
         </div>
 
         {/* RIGHT: Quick Export Panel */}
         <div className="space-y-4">
           {/* Export Panel */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 }}
@@ -1211,11 +1224,12 @@ const OrganizerReportTemplatesPage = () => {
             {/* Export button */}
             <button
               onClick={handleExport}
+              disabled={exporting}
               className="w-full py-3 bg-white text-indigo-700 font-black rounded-xl hover:shadow-xl transition-all hover:-translate-y-0.5 flex items-center justify-center gap-2"
             >
               <AnimatePresence mode="wait">
                 {exporting ? (
-                  <motion.span
+                  <Motion.span
                     key="loading"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -1224,9 +1238,9 @@ const OrganizerReportTemplatesPage = () => {
                   >
                     <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
                     Đang xuất...
-                  </motion.span>
+                  </Motion.span>
                 ) : (
-                  <motion.span
+                  <Motion.span
                     key="idle"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -1235,17 +1249,20 @@ const OrganizerReportTemplatesPage = () => {
                   >
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     Xuất báo cáo
-                  </motion.span>
+                  </Motion.span>
                 )}
               </AnimatePresence>
             </button>
+            {exportError && (
+              <p className="text-xs font-bold text-rose-100 text-center mt-3" role="alert">{exportError}</p>
+            )}
             <p className="text-[10px] opacity-60 text-center mt-3 leading-relaxed">
               Tệp sẽ được gửi qua email sau khi hoàn tất.
             </p>
-          </motion.div>
+          </Motion.div>
 
           {/* Custom report CTA */}
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.25 }}
@@ -1265,7 +1282,7 @@ const OrganizerReportTemplatesPage = () => {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </Motion.div>
         </div>
       </div>
 

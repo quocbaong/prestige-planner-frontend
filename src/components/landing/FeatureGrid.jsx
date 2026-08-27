@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const features = [
   {
@@ -50,10 +50,10 @@ const FeatureGrid = () => {
   return (
     <section className="bg-[#f8fafc] py-24 md:py-32" id="features">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
-        
+
         {/* Section Header */}
         <div className="text-center mb-16 md:mb-20">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -65,13 +65,13 @@ const FeatureGrid = () => {
             <p className="text-lg md:text-xl text-slate-500 font-body max-w-2xl mx-auto">
               Tất cả những gì bạn cần để quản lý một sự kiện thành công
             </p>
-          </motion.div>
+          </Motion.div>
         </div>
 
         {/* Features Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-7">
           {features.map((feature, i) => (
-            <motion.div
+            <Motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -82,15 +82,15 @@ const FeatureGrid = () => {
               <div className={`w-10 h-10 rounded-lg ${feature.bg} flex items-center justify-center mb-5 transition-transform duration-500 group-hover:rotate-12`}>
                 <span className={`material-symbols-outlined text-[20px] ${feature.iconColor}`}>{feature.icon}</span>
               </div>
-              
+
               <h3 className="text-lg font-headline font-black text-slate-900 mb-2 tracking-tight">
                 {feature.title}
               </h3>
-              
+
               <p className="text-slate-600 font-body leading-relaxed text-sm opacity-80 italic">
                 {feature.description}
               </p>
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 

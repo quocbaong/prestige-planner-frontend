@@ -61,7 +61,7 @@ const AttendeeTicketsPage = () => {
   const [registrations, setRegistrations] = useState([]);
   const [selectedReg, setSelectedReg] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {

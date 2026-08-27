@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import axios from '../lib/axios';
-import { 
-  ChevronRight, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  CheckCircle2, 
-  Ban, 
-  Eye, 
+import React, { useState, useEffect, useCallback } from 'react';
+import { adminEventService } from '../services/adminEventService';
+import {
+  ChevronRight,
+  Search,
+  Filter,
+  MoreVertical,
+  CheckCircle2,
+  Ban,
+  Eye,
   RotateCcw,
   AlertCircle,
   Clock,
@@ -35,7 +35,7 @@ const FilterDropdown = ({ label, value, onChange, options }) => (
   <div className="flex flex-col gap-1.5 flex-1 min-w-[180px]">
     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">{label}</span>
     <div className="relative group">
-      <select 
+      <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="w-full bg-white border border-border-color rounded-xl py-3 px-4 text-sm font-bold text-text-primary appearance-none outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
@@ -95,24 +95,39 @@ const GlobalEventsPage = () => {
   const [selectedIds, setSelectedIds] = useState([]);
   const [processingIds, setProcessingIds] = useState([]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/admin/events', {
-        params: {
-          search: appliedFilters.search,
-          category: appliedFilters.category,
-          organizerRole: appliedFilters.organizerRole,
-          status: appliedFilters.status,
-          page: currentPage,
-          size: 10
-        }
+      const response = await adminEventService.list();
+      const payload = response.data;
+      const fetchedEvents = Array.isArray(payload) ? payload : payload?.events || [];
+      const fetchedStats = Array.isArray(payload) ? null : payload?.stats;
+      const fetchedCategories = Array.isArray(payload) ? null : payload?.categories;
+      const fetchedPagination = Array.isArray(payload) ? null : payload?.pagination;
+      const mappedEvents = fetchedEvents.map((event) => {
+        const statusText = event.isPendingApproval ? 'Chờ phê duyệt'
+          : event.status === 'PUBLISHED' || event.status === 'ON_SALE' ? 'Đang diễn ra'
+            : event.status === 'CANCELLED' ? 'Bị đình chỉ' : 'Đã hoàn tất';
+        const joined = Number(event.currentAttendees || 0);
+        const total = Number(event.maxAttendees || 0);
+        return {
+          dbId: event.id,
+          id: event.slug || event.id,
+          name: event.title,
+          image: event.bannerUrl || event.thumbnailUrl || 'https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?auto=format&fit=crop&q=80&w=200',
+          organizer: { name: event.organizerName || '—', role: 'Verified', avatar: 'https://ui-avatars.com/api/?name=Organizer' },
+          status: { text: statusText, color: statusText === 'Bị đình chỉ' ? 'bg-red-50 text-red-600' : statusText === 'Chờ phê duyệt' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600' },
+          joined: { current: joined, total, percent: total ? Math.round((joined / total) * 100) : 0 },
+          date: event.startDate ? new Date(event.startDate).toLocaleDateString('vi-VN') : '--',
+          time: event.startDate ? new Date(event.startDate).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '--',
+        };
       });
-
-      const { events: fetchedEvents, stats: fetchedStats, categories: fetchedCategories, pagination: fetchedPagination } = response.data;
-      setEvents(fetchedEvents || []);
+      const search = appliedFilters.search.trim().toLowerCase();
+      const filteredEvents = mappedEvents.filter((event) => !search || `${event.name} ${event.id}`.toLowerCase().includes(search));
+      setEvents(filteredEvents.slice((currentPage - 1) * 10, currentPage * 10));
+      setStats((current) => ({ ...current, totalEvents: mappedEvents.length, ongoingEvents: mappedEvents.filter(event => event.status.text === 'Đang diễn ra').length, pendingEvents: mappedEvents.filter(event => event.status.text === 'Chờ phê duyệt').length }));
       if (fetchedStats) setStats(fetchedStats);
-      
+
       if (fetchedCategories) {
         const colorMap = {
           "HỘI THẢO": "bg-primary",
@@ -131,17 +146,22 @@ const GlobalEventsPage = () => {
         })));
       }
 
-      if (fetchedPagination) setPagination(fetchedPagination);
+      setPagination(fetchedPagination || {
+        currentPage,
+        pageSize: 10,
+        totalItems: fetchedEvents.length,
+        totalPages: Math.max(1, Math.ceil(fetchedEvents.length / 10)),
+      });
     } catch (error) {
       console.error('Lỗi khi tải danh sách sự kiện', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [appliedFilters, currentPage]);
 
   useEffect(() => {
     fetchEvents();
-  }, [appliedFilters, currentPage]);
+  }, [fetchEvents]);
 
   const handleApplyFilters = () => {
     setCurrentPage(1);
@@ -153,11 +173,11 @@ const GlobalEventsPage = () => {
     });
   };
 
-  const handleApproveEvent = async (dbId, name) => {
+  const handleApproveEvent = async (dbId) => {
     if (processingIds.includes(dbId)) return;
     setProcessingIds(prev => [...prev, dbId]);
     try {
-      await axios.post(`/admin/events/${dbId}/approve`);
+      await adminEventService.approve(dbId);
       await fetchEvents();
     } catch (error) {
       console.error('Lỗi khi phê duyệt sự kiện', error);
@@ -166,11 +186,11 @@ const GlobalEventsPage = () => {
     }
   };
 
-  const handleSuspendEvent = async (dbId, name) => {
+  const handleSuspendEvent = async (dbId) => {
     if (processingIds.includes(dbId)) return;
     setProcessingIds(prev => [...prev, dbId]);
     try {
-      await axios.post(`/admin/events/${dbId}/suspend`);
+      await adminEventService.suspend(dbId);
       await fetchEvents();
     } catch (error) {
       console.error('Lỗi khi đình chỉ sự kiện', error);
@@ -183,7 +203,7 @@ const GlobalEventsPage = () => {
     if (selectedIds.length === 0) return;
     if (window.confirm(`Bạn có chắc chắn muốn phê duyệt ${selectedIds.length} sự kiện đã chọn?`)) {
       try {
-        await axios.post('/admin/events/bulk-approve', selectedIds);
+        await adminEventService.bulkApprove(selectedIds);
         setSelectedIds([]);
         fetchEvents();
       } catch (error) {
@@ -196,7 +216,7 @@ const GlobalEventsPage = () => {
     if (selectedIds.length === 0) return;
     if (window.confirm(`Bạn có chắc chắn muốn đình chỉ ${selectedIds.length} sự kiện đã chọn?`)) {
       try {
-        await axios.post('/admin/events/bulk-suspend', selectedIds);
+        await adminEventService.bulkSuspend(selectedIds);
         setSelectedIds([]);
         fetchEvents();
       } catch (error) {
@@ -234,34 +254,34 @@ const GlobalEventsPage = () => {
             Đảm bảo chất lượng nội dung và an toàn cho cộng đồng.
           </p>
         </div>
-        
+
         {/* Top Summary Stats */}
         <div className="flex gap-2 w-full max-w-2xl">
-          <StatCard 
-            title="Tổng sự kiện" 
-            value={stats.totalEvents.toLocaleString()} 
+          <StatCard
+            title="Tổng sự kiện"
+            value={stats.totalEvents.toLocaleString()}
             footer={
               <div className="flex items-center gap-1.5 text-green-500 font-bold text-sm">
                 <span className="text-lg">↗</span> {stats.totalEventsTrend}
               </div>
             }
           />
-          <StatCard 
-            title="Đang diễn ra" 
-            value={stats.ongoingEvents.toLocaleString()} 
+          <StatCard
+            title="Đang diễn ra"
+            value={stats.ongoingEvents.toLocaleString()}
             valueColor="text-primary"
             footer={
               <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden mt-1">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-1000" 
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-1000"
                   style={{ width: `${stats.totalEvents > 0 ? (stats.ongoingEvents * 100) / stats.totalEvents : 0}%` }}
                 ></div>
               </div>
             }
           />
-          <StatCard 
-            title="Chờ duyệt" 
-            value={stats.pendingEvents.toLocaleString()} 
+          <StatCard
+            title="Chờ duyệt"
+            value={stats.pendingEvents.toLocaleString()}
             valueColor="text-orange-700"
             footer={
               <span className="inline-flex px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-[10px] font-black uppercase tracking-tight">
@@ -269,9 +289,9 @@ const GlobalEventsPage = () => {
               </span>
             }
           />
-          <StatCard 
-            title="Bị báo cáo" 
-            value={stats.reportedEvents.toLocaleString()} 
+          <StatCard
+            title="Bị báo cáo"
+            value={stats.reportedEvents.toLocaleString()}
             valueColor="text-red-600"
             footer={
               <div className="flex items-center gap-1.5 text-red-600 font-bold text-xs">
@@ -288,9 +308,9 @@ const GlobalEventsPage = () => {
         <div className="flex flex-col gap-1.5 flex-1 min-w-[200px]">
           <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tìm kiếm sự kiện</span>
           <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Nhập tên, mô tả hoặc ID..." 
+            <input
+              type="text"
+              placeholder="Nhập tên, mô tả hoặc ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white border border-border-color rounded-xl py-3 pl-10 pr-4 text-sm font-bold text-text-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
@@ -299,26 +319,26 @@ const GlobalEventsPage = () => {
           </div>
         </div>
 
-        <FilterDropdown 
-          label="Lọc theo hạng mục" 
-          value={selectedCategory} 
+        <FilterDropdown
+          label="Lọc theo hạng mục"
+          value={selectedCategory}
           onChange={setSelectedCategory}
-          options={["Tất cả hạng mục", "Hội thảo", "Âm nhạc", "Thể thao", "Khác"]} 
+          options={["Tất cả hạng mục", "Hội thảo", "Âm nhạc", "Thể thao", "Khác"]}
         />
-        <FilterDropdown 
-          label="Hạng người tổ chức" 
-          value={selectedOrganizerRole} 
+        <FilterDropdown
+          label="Hạng người tổ chức"
+          value={selectedOrganizerRole}
           onChange={setSelectedOrganizerRole}
-          options={["Tất cả cấp độ", "Platinum", "Verified", "Standard"]} 
+          options={["Tất cả cấp độ", "Platinum", "Verified", "Standard"]}
         />
-        <FilterDropdown 
-          label="Trạng thái báo cáo" 
-          value={selectedStatus} 
+        <FilterDropdown
+          label="Trạng thái báo cáo"
+          value={selectedStatus}
           onChange={setSelectedStatus}
-          options={["Tất cả trạng thái", "Đang diễn ra", "Chờ phê duyệt", "Bị đình chỉ"]} 
+          options={["Tất cả trạng thái", "Đang diễn ra", "Chờ phê duyệt", "Bị đình chỉ"]}
         />
-        
-        <button 
+
+        <button
           onClick={handleApplyFilters}
           className="bg-primary hover:bg-primary-hover text-white px-8 py-3.5 rounded-2xl font-black text-sm transition-all flex items-center gap-2 shadow-xl shadow-primary/20 active:scale-95"
         >
@@ -338,24 +358,24 @@ const GlobalEventsPage = () => {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <button 
+            <button
               disabled={selectedIds.length === 0}
               onClick={handleBulkApprove}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${
-                selectedIds.length > 0 
-                  ? 'bg-green-50 text-green-700 hover:bg-green-100 cursor-pointer' 
+                selectedIds.length > 0
+                  ? 'bg-green-50 text-green-700 hover:bg-green-100 cursor-pointer'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
               Phê duyệt hàng loạt
             </button>
-            <button 
+            <button
               disabled={selectedIds.length === 0}
               onClick={handleBulkSuspend}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs transition-all ${
-                selectedIds.length > 0 
-                  ? 'bg-red-50 text-red-700 hover:bg-red-100 cursor-pointer' 
+                selectedIds.length > 0
+                  ? 'bg-red-50 text-red-700 hover:bg-red-100 cursor-pointer'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
@@ -383,9 +403,9 @@ const GlobalEventsPage = () => {
               <thead>
                 <tr className="border-b border-border-color bg-gray-50/50">
                   <th className="px-6 py-4 w-12">
-                    <input 
-                      type="checkbox" 
-                      className="rounded-md accent-primary" 
+                    <input
+                      type="checkbox"
+                      className="rounded-md accent-primary"
                       checked={events.length > 0 && selectedIds.length === events.length}
                       onChange={handleToggleSelectAll}
                     />
@@ -402,9 +422,9 @@ const GlobalEventsPage = () => {
                 {events.map((row) => (
                   <tr key={row.dbId} className="hover:bg-gray-50/80 transition-all cursor-pointer group">
                     <td className="px-6 py-6" onClick={(e) => e.stopPropagation()}>
-                      <input 
-                        type="checkbox" 
-                        className="rounded-md accent-primary" 
+                      <input
+                        type="checkbox"
+                        className="rounded-md accent-primary"
                         checked={selectedIds.includes(row.dbId)}
                         onChange={() => handleToggleSelectOne(row.dbId)}
                       />
@@ -424,7 +444,7 @@ const GlobalEventsPage = () => {
                         <div>
                           <p className="text-sm font-bold text-text-primary">{row.organizer.name}</p>
                           <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full ${
-                            row.organizer.role === 'Platinum' ? 'bg-blue-100 text-blue-600' : 
+                            row.organizer.role === 'Platinum' ? 'bg-blue-100 text-blue-600' :
                             row.organizer.role === 'Verified' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
                           }`}>
                             {row.organizer.role}
@@ -436,7 +456,7 @@ const GlobalEventsPage = () => {
                       <div className="flex items-center gap-2">
                          <span className={`px-4 py-1.5 rounded-full text-[11px] font-black tracking-tight flex items-center gap-2 shadow-sm ${row.status.color}`}>
                            <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                             row.status.text === 'Đang diễn ra' ? 'bg-green-500' : 
+                             row.status.text === 'Đang diễn ra' ? 'bg-green-500' :
                              row.status.text === 'Chờ phê duyệt' ? 'bg-orange-500' : 'bg-red-500'
                            }`}></span>
                            {row.status.text}
@@ -460,7 +480,7 @@ const GlobalEventsPage = () => {
                     <td className="px-6 py-6" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-2">
                         {row.status.text === 'Chờ phê duyệt' && (
-                          <button 
+                          <button
                             disabled={processingIds.includes(row.dbId)}
                             onClick={() => handleApproveEvent(row.dbId, row.name)}
                             className="p-2.5 rounded-xl hover:bg-green-50 text-green-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -470,7 +490,7 @@ const GlobalEventsPage = () => {
                           </button>
                         )}
                         {row.status.text !== 'Bị đình chỉ' && (
-                          <button 
+                          <button
                             disabled={processingIds.includes(row.dbId)}
                             onClick={() => handleSuspendEvent(row.dbId, row.name)}
                             className="p-2.5 rounded-xl hover:bg-red-50 text-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -497,21 +517,21 @@ const GlobalEventsPage = () => {
               </span> trong số <span className="font-black text-text-primary">{pagination.totalItems.toLocaleString()}</span> sự kiện
             </p>
             <div className="flex items-center gap-1.5">
-              <button 
-                onClick={() => setCurrentPage(1)} 
+              <button
+                onClick={() => setCurrentPage(1)}
                 disabled={pagination.currentPage === 1}
                 className="p-2 rounded-lg text-gray-300 hover:text-text-primary disabled:text-gray-200 disabled:hover:text-gray-200 transition-colors"
               >
                 <ChevronsLeft className="w-4 h-4" />
               </button>
-              <button 
+              <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={pagination.currentPage === 1}
                 className="p-2 rounded-lg text-gray-300 hover:text-text-primary disabled:text-gray-200 disabled:hover:text-gray-200 transition-colors"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              
+
               <div className="flex items-center gap-1 mx-2">
                 {Array.from({ length: pagination.totalPages }, (_, i) => i + 1)
                   .filter(p => Math.abs(p - pagination.currentPage) <= 2 || p === 1 || p === pagination.totalPages)
@@ -520,11 +540,11 @@ const GlobalEventsPage = () => {
                     return (
                       <React.Fragment key={p}>
                         {showEllipsis && <span className="px-2 text-gray-400">...</span>}
-                        <button 
+                        <button
                           onClick={() => setCurrentPage(p)}
                           className={`w-10 h-10 rounded-xl font-black text-sm transition-all ${
-                            pagination.currentPage === p 
-                              ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                            pagination.currentPage === p
+                              ? 'bg-primary text-white shadow-lg shadow-primary/20'
                               : 'hover:bg-gray-200 text-text-secondary font-bold'
                           }`}
                         >
@@ -535,14 +555,14 @@ const GlobalEventsPage = () => {
                   })}
               </div>
 
-              <button 
+              <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination.totalPages))}
                 disabled={pagination.currentPage === pagination.totalPages}
                 className="p-2 rounded-lg text-gray-300 hover:text-text-primary disabled:text-gray-200 disabled:hover:text-gray-200 transition-colors"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
-              <button 
+              <button
                 onClick={() => setCurrentPage(pagination.totalPages)}
                 disabled={pagination.currentPage === pagination.totalPages}
                 className="p-2 rounded-lg text-gray-300 hover:text-text-primary disabled:text-gray-200 disabled:hover:text-gray-200 transition-colors"
@@ -560,7 +580,7 @@ const GlobalEventsPage = () => {
         <div className="lg:col-span-2 relative group overflow-hidden bg-primary rounded-[40px] p-10 flex flex-col justify-between text-white shadow-2xl shadow-primary/30 min-h-[300px]">
           <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3"></div>
           <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-400/20 rounded-full blur-[60px] translate-y-1/3 -translate-x-1/4"></div>
-          
+
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-8">
               <div className="p-2.5 bg-white/20 backdrop-blur-xl rounded-2xl ring-1 ring-white/30">
@@ -577,7 +597,7 @@ const GlobalEventsPage = () => {
           </div>
 
           <div className="relative z-10">
-            <button 
+            <button
               onClick={() => {
                 setSelectedStatus("Chờ phê duyệt");
                 setSearchQuery("");
@@ -604,7 +624,7 @@ const GlobalEventsPage = () => {
                <h3 className="text-xl font-black text-text-primary tracking-tight">Phân bố hạng mục</h3>
                <PieChart className="w-5 h-5 text-gray-300" />
             </div>
-            
+
             <div className="space-y-8">
               {categories.map((cat) => (
                 <div key={cat.name} className="space-y-3">
@@ -613,8 +633,8 @@ const GlobalEventsPage = () => {
                     <span className="text-sm font-black text-text-primary">{cat.percent}%</span>
                   </div>
                   <div className="w-full h-2.5 bg-gray-50 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full ${cat.color} rounded-full transition-all duration-1000 shadow-sm`} 
+                    <div
+                      className={`h-full ${cat.color} rounded-full transition-all duration-1000 shadow-sm`}
                       style={{ width: `${cat.percent}%` }}
                     ></div>
                   </div>

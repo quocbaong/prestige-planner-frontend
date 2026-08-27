@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import eventTech from '../../assets/event_tech.png';
 import eventMusic from '../../assets/event_music.png';
@@ -41,7 +41,7 @@ const FeaturedEventsSection = () => {
   return (
     <section className="py-24 bg-[#f8fafc]" id="events">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
-        
+
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div className="space-y-3">
@@ -52,7 +52,7 @@ const FeaturedEventsSection = () => {
               Khám phá các sự kiện đang diễn ra trên nền tảng
             </p>
           </div>
-          <button 
+          <button
             onClick={() => navigate('/events')}
             className="text-indigo-600 font-headline font-bold hover:underline transition-all"
           >
@@ -63,7 +63,7 @@ const FeaturedEventsSection = () => {
         {/* Events Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
           {events.map((event, i) => (
-            <motion.div
+            <Motion.div
               key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -74,8 +74,8 @@ const FeaturedEventsSection = () => {
             >
               {/* Image Container */}
               <div className="relative aspect-[16/10] rounded-[1.8rem] overflow-hidden mb-6 shadow-inner">
-                <img 
-                  src={event.image} 
+                <img
+                  src={event.image}
                   alt={event.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
@@ -106,7 +106,7 @@ const FeaturedEventsSection = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 

@@ -15,13 +15,13 @@ const headers = [
   read('src/components/layouts/parts/OrganizerHeader.jsx')
 ];
 
-assert.match(page, /axios\.get\('\/notifications'\)/);
-assert.match(page, /axios\.post\(`\/notifications\/\$\{notif\.id\}\/read`\)/);
-assert.match(page, /axios\.post\('\/notifications\/read-all'\)/);
-assert.match(dropdown, /axios\.post\('\/notifications\/read-all'\)/);
+assert.match(page, /notificationService\.list\(\)/);
+assert.match(page, /notificationService\.markRead\(notif\.id\)/);
+assert.match(page, /notificationService\.markAllRead\(\)/);
+assert.match(dropdown, /notificationService\.markAllRead\(\)/);
 assert.match(dropdown, /onNotificationStateChanged\?\.\(\)/);
-assert.match(broadcast, /axios\.get\('\/admin\/broadcast'\)/);
-assert.match(broadcast, /axios\.post\('\/admin\/broadcast'/);
+assert.match(broadcast, /broadcastService\.getPage\(\)/);
+assert.match(broadcast, /broadcastService\.send\(/);
 for (const header of headers) assert.match(header, /onNotificationStateChanged=\{fetch(?:Notifications|UnreadCount)\}/);
 
-console.log('PASS: Phase 8 FE notification/read-all/broadcast smoke contract');
+console.log('PASS: notification/read-all/broadcast smoke contract');

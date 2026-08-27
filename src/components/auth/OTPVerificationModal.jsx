@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { X, ShieldCheck, Mail, RefreshCw, ArrowRight } from 'lucide-react';
-import axios from '../../lib/axios';
+import { authService } from '../../services/authService';
 import { toast } from 'react-hot-toast';
 
-const OTPVerificationModal = ({ isOpen, email, onClose, onVerified, onResend }) => {
+const OTPVerificationModal = ({ isOpen, email, onClose, onVerified }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [timer, setTimer] = useState(60);
@@ -25,7 +25,7 @@ const OTPVerificationModal = ({ isOpen, email, onClose, onVerified, onResend }) 
 
   const handleChange = (index, value) => {
     if (isNaN(value)) return;
-    
+
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
@@ -53,7 +53,7 @@ const OTPVerificationModal = ({ isOpen, email, onClose, onVerified, onResend }) 
 
     setLoading(true);
     try {
-      await axios.post('/auth/verify-otp', {
+      await authService.verifyOtp({
         email,
         otp: otpValue
       });
@@ -68,15 +68,15 @@ const OTPVerificationModal = ({ isOpen, email, onClose, onVerified, onResend }) 
 
   const handleResendInternal = async () => {
     if (!canResend) return;
-    
+
     try {
-      await axios.post(`/auth/resend-otp?email=${email}`);
+      await authService.resendOtp(email);
       toast.success('Đã gửi lại mã OTP mới');
       setTimer(60);
       setCanResend(false);
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0].focus();
-    } catch (error) {
+    } catch {
       toast.error('Không thể gửi lại mã. Vui lòng thử lại sau.');
     }
   };
@@ -86,14 +86,14 @@ const OTPVerificationModal = ({ isOpen, email, onClose, onVerified, onResend }) 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
         />
-        
-        <motion.div
+
+        <Motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -165,7 +165,7 @@ const OTPVerificationModal = ({ isOpen, email, onClose, onVerified, onResend }) 
               </button>
             </div>
           </div>
-        </motion.div>
+        </Motion.div>
       </div>
     </AnimatePresence>
   );

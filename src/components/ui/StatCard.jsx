@@ -1,7 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-const StatCard = ({ title, value, subtext, trend, trendValue, icon: Icon, iconBg, iconColor, rating }) => {
+const StatCard = ({ title, value, subtext, trend, trendValue, icon: Icon, iconBg, iconColor, rating }) => { void Icon;
   return (
     <div className="bg-white p-6 rounded-[24px] border border-border-color hover:shadow-xl hover:shadow-primary/5 transition-all duration-300">
       <div className="flex justify-between items-start gap-4 mb-4">
@@ -13,7 +13,7 @@ const StatCard = ({ title, value, subtext, trend, trendValue, icon: Icon, iconBg
           <Icon className="w-6 h-6" />
         </div>
       </div>
-      
+
       <div className="flex items-center gap-2">
         {trendValue && (
           <div className={`flex items-center gap-0.5 text-xs font-bold ${trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
@@ -22,7 +22,7 @@ const StatCard = ({ title, value, subtext, trend, trendValue, icon: Icon, iconBg
           </div>
         )}
         <span className="text-[12px] text-text-secondary font-medium">{subtext}</span>
-        
+
         {rating && (
           <div className="flex items-center gap-0.5">
             {[...Array(5)].map((_, i) => (

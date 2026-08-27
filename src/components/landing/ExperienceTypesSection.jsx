@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import inPersonVid from '../../assets/Video/inperson-event.webm';
 import virtualVid from '../../assets/Video/virtual-event.webm';
 import hybridVid from '../../assets/Video/hybrid-event.webm';
@@ -40,19 +40,19 @@ const ExperienceTypesSection = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-10">
 
         <div className="text-center mb-16 relative">
-          <motion.h2 
+          <Motion.h2
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-4xl md:text-5xl font-headline font-black text-slate-900 tracking-tight leading-[1.4]"
           >
             Linh hoạt tối đa, đáp ứng mọi <br />nhu cầu tổ chức sự kiện
-          </motion.h2>
+          </Motion.h2>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           {types.map((type, i) => (
-            <motion.div 
+            <Motion.div
               key={i}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -82,7 +82,7 @@ const ExperienceTypesSection = () => {
               {/* Ultra Polished Video Mockup Container */}
               <div className="relative mt-8 group/vid overflow-visible">
                  <div className="absolute -inset-1 bg-white/20 blur-2xl rounded-3xl opacity-0 group-hover/vid:opacity-100 transition-opacity duration-700"></div>
-                 
+
                  <div className="relative rounded-3xl overflow-hidden bg-black shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] border-4 border-slate-900/10">
                     {/* Window Controls UI Mockup */}
                     <div className="absolute top-0 inset-x-0 h-7 bg-slate-900/80 backdrop-blur-md flex items-center px-4 gap-1.5 z-20">
@@ -114,7 +114,7 @@ const ExperienceTypesSection = () => {
                  </div>
               </div>
 
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 

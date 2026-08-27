@@ -1,12 +1,12 @@
-import api from './api';
+import api from '../lib/axios';
 export const dashboardService = {
-  getOverview: () => api.get('/organizer/dashboard/overview'),
-  getRevenue: (groupBy = 'month') => api.get(`/organizer/dashboard/revenue?groupBy=${groupBy}`),
-  getAttendees: () => api.get('/organizer/dashboard/attendees'),
-  getCheckinDensity: (params) => api.get(`/organizer/dashboard/checkin-density?${params}`),
-  getAudienceSegments: (params) => api.get(`/organizer/dashboard/audience-segments?${params}`),
-  getConversionFunnel: (params) => api.get(`/organizer/dashboard/conversion-funnel?${params}`),
-  getEvents: (params) => api.get(`/organizer/dashboard/events?${params}`),
-  getKpiSummary: (params) => api.get(`/organizer/dashboard/overview?${params}`),
+  getOrganizerFinance: () => api.get('/organizer/dashboard/finance'),
+  getRevenue: (groupBy = 'month') => api.get('/organizer/dashboard/revenue', { params: { groupBy } }),
+  getAdminFinance: () => api.get('/admin/dashboard/finance'),
+  getEventMetrics: (eventId) => api.get(`/organizer/events/${eventId}/metrics`),
+  getTicketMetrics: (eventId) => api.get(`/organizer/events/${eventId}/ticket-metrics`),
+  getTicketReport: (eventId) => api.get(`/organizer/events/${eventId}/ticket-report`),
+  getOrderMetrics: (eventId) => api.get(`/organizer/events/${eventId}/order-metrics`),
+  getOrderReport: (eventId) => api.get(`/organizer/events/${eventId}/order-report`),
 };
 

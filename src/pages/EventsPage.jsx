@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { eventService } from '../services/eventService';
 import LandingNavbar from '../components/common/LandingNavbar';
@@ -15,6 +15,15 @@ const categoryMap = {
   ENTERTAINMENT: { label: 'GIẢI TRÍ', icon: 'celebration' },
   OTHER: { label: 'KHÁC', icon: 'event' }
 };
+
+const discoverTabs = [
+  { label: 'Tất cả', category: null },
+  { label: 'Âm nhạc', category: 'MUSIC' },
+  { label: 'Công nghệ', category: 'TECH' },
+  { label: 'Ẩm thực', category: 'FOOD' },
+  { label: 'Nghệ thuật', category: 'ART' },
+  { label: 'Doanh nghiệp', category: 'BUSINESS' }
+];
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -204,29 +213,20 @@ const FeaturedEvents = () => {
 
 const DiscoverEvents = ({ searchQuery = "" }) => {
   const navigate = useNavigate();
-  const tabs = [
-    { label: 'Tất cả', category: null },
-    { label: 'Âm nhạc', category: 'MUSIC' },
-    { label: 'Công nghệ', category: 'TECH' },
-    { label: 'Ẩm thực', category: 'FOOD' },
-    { label: 'Nghệ thuật', category: 'ART' },
-    { label: 'Doanh nghiệp', category: 'BUSINESS' }
-  ];
-
   const [activeTabIndex, setActiveTabIndex] = useState(0);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       const params = {
         page: page - 1, // Spring Boot is 0-indexed
         size: 6,
         search: searchQuery || undefined,
-        category: tabs[activeTabIndex].category || undefined
+        category: discoverTabs[activeTabIndex].category || undefined
       };
       const response = await eventService.getPublicEvents(params);
       setEvents(response.data.content || []);
@@ -236,11 +236,11 @@ const DiscoverEvents = ({ searchQuery = "" }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTabIndex, page, searchQuery]);
 
   useEffect(() => {
     fetchEvents();
-  }, [activeTabIndex, searchQuery, page]);
+  }, [fetchEvents]);
 
   useEffect(() => {
     setPage(1);
@@ -251,7 +251,7 @@ const DiscoverEvents = ({ searchQuery = "" }) => {
       <div className="flex flex-col xl:flex-row xl:items-end justify-between mb-8 gap-6 pt-10">
         <h2 className="text-3xl font-bold text-slate-900 font-headline whitespace-nowrap">Khám phá mọi sự kiện</h2>
         <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar pb-2 xl:pb-0 w-full xl:w-auto relative pr-12">
-          {tabs.map((tab, index) => (
+          {discoverTabs.map((tab, index) => (
             <button
               key={tab.label}
               onClick={() => setActiveTabIndex(index)}

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Sun, QrCode, ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 import { registrationService } from '../services/registrationService';
 
+/* categoryMap is retained in the UI data contract for future ticket detail rendering. */
 const categoryMap = {
   MUSIC: { label: 'ÂM NHẠC', color: 'from-pink-500 to-rose-600', text: 'text-rose-500', bg: 'bg-rose-50' },
   TECH: { label: 'CÔNG NGHỆ', color: 'from-blue-500 to-indigo-600', text: 'text-indigo-500', bg: 'bg-indigo-50' },
@@ -17,6 +18,7 @@ const categoryMap = {
 };
 
 const AttendeeQRPage = () => {
+  void categoryMap;
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
@@ -24,7 +26,7 @@ const AttendeeQRPage = () => {
   const [selectedReg, setSelectedReg] = useState(null);
   const [activeTicketIdx, setActiveTicketIdx] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
   const [isHighContrast, setIsHighContrast] = useState(false);
 
   useEffect(() => {
@@ -33,7 +35,7 @@ const AttendeeQRPage = () => {
         setLoading(true);
         const response = await registrationService.getMyRegistrations();
         const data = response.data || [];
-        
+
         // Filter out only CONFIRMED registrations with valid tickets
         const confirmedRegs = data.filter(r => r.status === 'CONFIRMED' && r.tickets && r.tickets.length > 0);
         setRegistrations(confirmedRegs);
@@ -93,7 +95,7 @@ const AttendeeQRPage = () => {
   const activeReg = selectedReg || registrations[0];
   const ticketsList = activeReg.tickets || [];
   const currentTicket = ticketsList[activeTicketIdx] || ticketsList[0];
-  
+
   // Format dates
   const formatEventDate = (dateStr) => {
     if (!dateStr) return '';
@@ -111,16 +113,16 @@ const AttendeeQRPage = () => {
   return (
     <div className={`transition-colors duration-300 ${isHighContrast ? 'bg-white' : 'bg-[#fbfcff]'} min-h-screen pb-20`}>
       <div className="max-w-2xl mx-auto py-8 px-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        
+
         {/* Navigation back header */}
         <div className="flex justify-between items-center mb-8">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all shadow-sm flex items-center justify-center shrink-0 active:scale-95"
           >
             <ArrowLeft className="w-5 h-5 text-slate-800" />
           </button>
-          
+
           <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full shadow-sm">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
             <span className="text-[10px] font-black uppercase tracking-wider">Sẵn sàng Check-in</span>
@@ -169,7 +171,7 @@ const AttendeeQRPage = () => {
                   alt="Check-in QR Code"
                   className="w-full h-full object-contain"
                 />
-                
+
                 {/* Dynamic scan line overlay */}
                 <div className="absolute left-0 right-0 h-0.5 bg-indigo-500/30 animate-pulse pointer-events-none"></div>
               </div>
@@ -187,7 +189,7 @@ const AttendeeQRPage = () => {
           {/* Ticket switcher (if multiple tickets in this registration) */}
           {ticketsList.length > 1 && (
             <div className="flex items-center gap-3 bg-white border border-slate-200 shadow-sm p-1.5 rounded-xl mb-4">
-              <button 
+              <button
                 onClick={() => setActiveTicketIdx(prev => Math.max(0, prev - 1))}
                 disabled={activeTicketIdx === 0}
                 className="p-1.5 hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent rounded-lg transition-colors"
@@ -197,7 +199,7 @@ const AttendeeQRPage = () => {
               <span className="text-xs font-black text-slate-800">
                 Vé {activeTicketIdx + 1} / {ticketsList.length}
               </span>
-              <button 
+              <button
                 onClick={() => setActiveTicketIdx(prev => Math.min(ticketsList.length - 1, prev + 1))}
                 disabled={activeTicketIdx === ticketsList.length - 1}
                 className="p-1.5 hover:bg-slate-50 text-slate-600 disabled:opacity-40 disabled:hover:bg-transparent rounded-lg transition-colors"

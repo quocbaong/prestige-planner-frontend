@@ -1,4 +1,4 @@
-import api from './api';
+import api from '../lib/axios';
 export const registrationService = {
   register: (eventId, data) => api.post(`/events/${eventId}/registrations/register`, data),
   confirmRegistration: (eventId, id) => api.post(`/events/${eventId}/registrations/${id}/confirm`),

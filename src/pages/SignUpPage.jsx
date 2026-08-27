@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Mail, Lock, User, Building2, Eye, EyeOff, Sparkles, LineChart, Check, Loader2 } from 'lucide-react';
 import heroIllustration from '../assets/hero-illustration.png';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 import logo from '../assets/logo.png';
 import OTPVerificationModal from '../components/auth/OTPVerificationModal';
 
@@ -19,7 +19,7 @@ const SignUpPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
-  
+
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -29,18 +29,18 @@ const SignUpPage = () => {
       setError('Bạn phải đồng ý với Điều khoản & Điều kiện.');
       return;
     }
-    
+
     setError('');
     setIsSubmitting(true);
-    
+
     try {
-      await register({ 
-        fullName, 
-        email, 
-        password, 
-        role, 
-        companyName: role === 'ORGANIZER' ? company : undefined 
-      }); 
+      await register({
+        fullName,
+        email,
+        password,
+        role,
+        companyName: role === 'ORGANIZER' ? company : undefined
+      });
       setRegisteredEmail(email);
       setShowOtpModal(true);
     } catch (err) {
@@ -133,7 +133,7 @@ const SignUpPage = () => {
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <User className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                   </div>
-                  <input 
+                  <input
                     type="text" id="name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
@@ -143,7 +143,7 @@ const SignUpPage = () => {
                   />
                 </div>
               </div>
-              
+
               {role === 'ORGANIZER' && (
                 <div className="group animate-in fade-in slide-in-from-right-2">
                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1" htmlFor="company">Tên Công ty</label>
@@ -151,7 +151,7 @@ const SignUpPage = () => {
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <Building2 className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                     </div>
-                    <input 
+                    <input
                       type="text" id="company"
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
@@ -197,7 +197,7 @@ const SignUpPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
-                <input 
+                <input
                   type="email" id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -214,7 +214,7 @@ const SignUpPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Lock className="h-4 w-4 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
-                <input 
+                <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   value={password}
@@ -223,7 +223,7 @@ const SignUpPage = () => {
                   className="block w-full pl-11 pr-12 py-3 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium"
                   required
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
@@ -242,8 +242,8 @@ const SignUpPage = () => {
                     type="button"
                     onClick={() => setSelectedType(type.vi)}
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 ${
-                      selectedType === type.vi 
-                        ? 'bg-indigo-50 text-indigo-600 ring-2 ring-indigo-500/20' 
+                      selectedType === type.vi
+                        ? 'bg-indigo-50 text-indigo-600 ring-2 ring-indigo-500/20'
                         : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                     }`}
                   >
@@ -262,7 +262,7 @@ const SignUpPage = () => {
               </span>
             </div>
 
-            <button 
+            <button
               type="submit"
               disabled={isSubmitting}
               className="w-full bg-indigo-600 text-white py-3 px-6 rounded-2xl font-bold text-base hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-500/30 active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
@@ -300,7 +300,7 @@ const SignUpPage = () => {
           </p>
         </div>
       </div>
-      <OTPVerificationModal 
+      <OTPVerificationModal
         isOpen={showOtpModal}
         email={registeredEmail}
         onClose={() => setShowOtpModal(false)}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
-import { useAuth } from '../../stores/AuthContext';
+import { useAuth } from '../../stores/useAuth';
 
 const LandingNavbar = () => {
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ const LandingNavbar = () => {
 
     const observer = new IntersectionObserver(handleIntersect, observerOptions);
     const sectionIds = ['hero', 'features', 'solutions', 'events', 'pricing', 'footer'];
-    
+
     sectionIds.forEach((id) => {
       const element = document.getElementById(id);
       if (element) observer.observe(element);
@@ -81,47 +81,47 @@ const LandingNavbar = () => {
   };
 
   const navLinks = [
-    { 
-      name: 'Trang chủ', 
-      id: 'hero', 
-      onClick: () => { navigate('/'); scrollToTop(); }, 
-      isActive: location.pathname === '/' && activeSection === 'hero', 
-      hasDropdown: false 
+    {
+      name: 'Trang chủ',
+      id: 'hero',
+      onClick: () => { navigate('/'); scrollToTop(); },
+      isActive: location.pathname === '/' && activeSection === 'hero',
+      hasDropdown: false
     },
-    { 
-      name: 'Tính năng', 
-      id: 'features', 
-      onClick: () => scrollToId('features'), 
+    {
+      name: 'Tính năng',
+      id: 'features',
+      onClick: () => scrollToId('features'),
       isActive: location.pathname === '/' && activeSection === 'features',
-      hasDropdown: false 
+      hasDropdown: false
     },
-    { 
-      name: 'Giải pháp', 
-      id: 'solutions', 
-      onClick: () => scrollToId('solutions'), 
+    {
+      name: 'Giải pháp',
+      id: 'solutions',
+      onClick: () => scrollToId('solutions'),
       isActive: location.pathname === '/' && activeSection === 'solutions',
-      hasDropdown: false 
+      hasDropdown: false
     },
-    { 
-      name: 'Sự kiện', 
-      id: 'events', 
-      onClick: () => scrollToId('events'), 
-      isActive: location.pathname.startsWith('/events') || (location.pathname === '/' && activeSection === 'events'), 
-      hasDropdown: false 
+    {
+      name: 'Sự kiện',
+      id: 'events',
+      onClick: () => scrollToId('events'),
+      isActive: location.pathname.startsWith('/events') || (location.pathname === '/' && activeSection === 'events'),
+      hasDropdown: false
     },
-    { 
-      name: 'Tài nguyên', 
-      id: 'resources', 
-      onClick: () => scrollToId('footer'), 
+    {
+      name: 'Tài nguyên',
+      id: 'resources',
+      onClick: () => scrollToId('footer'),
       isActive: location.pathname === '/' && activeSection === 'footer',
-      hasDropdown: false 
+      hasDropdown: false
     },
-    { 
-      name: 'Giá', 
-      id: 'pricing', 
-      onClick: () => scrollToId('pricing'), 
+    {
+      name: 'Giá',
+      id: 'pricing',
+      onClick: () => scrollToId('pricing'),
       isActive: location.pathname === '/' && activeSection === 'pricing',
-      hasDropdown: false 
+      hasDropdown: false
     },
   ];
 
