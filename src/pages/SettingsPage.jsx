@@ -42,6 +42,7 @@ const SettingsPage = () => {
   const [minPasswordLength, setMinPasswordLength] = useState('8+ ký tự');
   const [primaryColor, setPrimaryColor] = useState('#4f46e5');
   const [fontFamily, setFontFamily] = useState('Plus Jakarta Sans');
+  const [logoUrl, setLogoUrl] = useState('');
 
   // Modals state
   const [showStripeModal, setShowStripeModal] = useState(false);
@@ -75,9 +76,12 @@ const SettingsPage = () => {
   const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const [eventResponse, paymentResponse] = await Promise.all([
+      const [eventResponse, paymentResponse, securityResponse, brandingResponse, notificationResponse] = await Promise.all([
         settingsService.getEvent(),
         settingsService.getPayment(),
+        settingsService.getSecurity(),
+        settingsService.getBranding(),
+        settingsService.getNotification(),
       ]);
       const data = paymentResponse.data || {};
       const read = (key, fallback) => data[key] ?? fallback;
@@ -86,6 +90,22 @@ const SettingsPage = () => {
       setCommissionRate((current) => read('finance.commissionRate', current));
       setSubscriptionPlan((current) => read('finance.subscriptionPlan', current));
       setStripeActive((current) => read('api.stripeActive', String(current)) === 'true');
+
+      const security = securityResponse.data || {};
+      setTwoFactorEnabled((current) => (security['security.twoFactorEnabled'] ?? String(current)) === 'true');
+      setSessionTimeout((current) => security['security.sessionTimeout'] ?? current);
+      setMinPasswordLength((current) => security['security.minPasswordLength'] ?? current);
+
+      const branding = brandingResponse.data || {};
+      const nextColor = branding['branding.primaryColor'] ?? '#4f46e5';
+      const nextFont = branding['branding.fontFamily'] ?? 'Plus Jakarta Sans';
+      setPrimaryColor(nextColor);
+      setFontFamily(nextFont);
+      setLogoUrl(branding['branding.logoUrl'] ?? '');
+      applyThemeToDOM(nextColor, nextFont);
+
+      const notification = notificationResponse.data || {};
+      setSendGridActive((current) => (notification['api.sendGridActive'] ?? String(current)) === 'true');
 
       void eventResponse;
     } catch {
@@ -103,22 +123,46 @@ const SettingsPage = () => {
   // Save Settings to API
   const handleSave = async () => {
     try {
-      if (activeTab !== 'finance') {
-        showToast('Tab này chưa có endpoint owner trong contract hiện tại.', 'error');
+      setSaving(true);
+      if (activeTab === 'finance') {
+        const saved = await settingsService.savePayment({
+          'finance.currency': currency,
+          'finance.commissionRate': String(commissionRate),
+          'finance.subscriptionPlan': subscriptionPlan,
+          'api.stripeActive': String(stripeActive),
+        });
+        const savedData = saved.data || {};
+        setCurrency(savedData['finance.currency'] ?? currency);
+        setCommissionRate(savedData['finance.commissionRate'] ?? commissionRate);
+        setSubscriptionPlan(savedData['finance.subscriptionPlan'] ?? subscriptionPlan);
+        setStripeActive((savedData['api.stripeActive'] ?? String(stripeActive)) === 'true');
+      } else if (activeTab === 'api') {
+        const saved = await settingsService.saveNotification({
+          'api.sendGridActive': String(sendGridActive),
+        });
+        setSendGridActive((saved.data?.['api.sendGridActive'] ?? String(sendGridActive)) === 'true');
+      } else if (activeTab === 'security') {
+        const saved = await settingsService.saveSecurity({
+          'security.twoFactorEnabled': String(twoFactorEnabled),
+          'security.sessionTimeout': String(sessionTimeout),
+          'security.minPasswordLength': String(minPasswordLength),
+        });
+        setTwoFactorEnabled((saved.data?.['security.twoFactorEnabled'] ?? String(twoFactorEnabled)) === 'true');
+        setSessionTimeout(saved.data?.['security.sessionTimeout'] ?? sessionTimeout);
+        setMinPasswordLength(saved.data?.['security.minPasswordLength'] ?? minPasswordLength);
+      } else if (activeTab === 'branding') {
+        const saved = await settingsService.saveBranding({
+          'branding.primaryColor': primaryColor,
+          'branding.fontFamily': fontFamily,
+          'branding.logoUrl': logoUrl,
+        });
+        setPrimaryColor(saved.data?.['branding.primaryColor'] ?? primaryColor);
+        setFontFamily(saved.data?.['branding.fontFamily'] ?? fontFamily);
+        setLogoUrl(saved.data?.['branding.logoUrl'] ?? logoUrl);
+      } else {
+        showToast('Backup/restore chỉ được thực hiện qua runbook vận hành.', 'error');
         return;
       }
-      setSaving(true);
-      const saved = await settingsService.savePayment({
-        'finance.currency': currency,
-        'finance.commissionRate': String(commissionRate),
-        'finance.subscriptionPlan': subscriptionPlan,
-        'api.stripeActive': String(stripeActive),
-      });
-      const savedData = saved.data || {};
-      setCurrency(savedData['finance.currency'] ?? currency);
-      setCommissionRate(savedData['finance.commissionRate'] ?? commissionRate);
-      setSubscriptionPlan(savedData['finance.subscriptionPlan'] ?? subscriptionPlan);
-      setStripeActive((savedData['api.stripeActive'] ?? String(stripeActive)) === 'true');
       applyThemeToDOM(primaryColor, fontFamily);
       showToast('Cập nhật cấu hình hệ thống thành công!', 'success');
     } catch {
