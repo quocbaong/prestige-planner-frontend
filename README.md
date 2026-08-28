@@ -1,89 +1,54 @@
-# 🎭 EventHub - Hệ thống Quản lý Sự kiện Toàn diện
+# Prestige Planner Frontend
 
-![EventHub Hero](./public/readme-hero.png)
+Web application for the Prestige Planner event-management platform. The application supports public, attendee, organizer and administrator experiences and communicates with backend services only through the API Gateway.
 
-**EventHub** là một nền tảng quản lý sự kiện hiện đại, được thiết kế để tối ưu hóa trải nghiệm cho cả **Nhà tổ chức (Organizer)** và **Người tham gia (Attendee)**. Với giao diện tinh tế, hiệu suất cao và bộ tính năng mạnh mẽ, EventHub giúp việc quản lý sự kiện trở nên đơn giản và chuyên nghiệp hơn bao giờ hết.
+## Technology
 
----
+- React 19 and Vite 7
+- React Router 7
+- Axios
+- Material UI and Tailwind CSS
+- Chart.js, Recharts and FullCalendar
 
-## ✨ Tính năng Nổi bật
+## Requirements
 
-### 👔 Dành cho Nhà tổ chức (Organizer)
-- **Bảng điều khiển thông minh**: Theo dõi tổng quan doanh thu, số lượng người tham gia và trạng thái các sự kiện theo thời gian thực.
-- **Quản lý Sự kiện Chuyên sâu**: Tạo, chỉnh sửa và quản lý vòng đời sự kiện từ lúc bắt đầu đến khi kết thúc.
-- **Quản lý Người tham gia**: Danh sách chi tiết, theo dõi check-in và xuất dữ liệu (CSV/Excel).
-- **Tài chính & Thanh toán**: Quản lý doanh thu từng sự kiện, lịch sử giao dịch và hệ thống yêu cầu rút tiền minh bạch.
-- **Lịch & Timeline**: Giao diện lịch (FullCalendar) trực quan giúp điều phối lịch trình sự kiện dễ dàng.
-- **Báo cáo & Phân tích**: Hệ thống mẫu báo cáo linh hoạt, hỗ trợ phân tích dữ liệu chuyên sâu và xuất file đa định dạng (PDF, Excel, CSV).
-- **Truyền thông (Broadcast)**: Gửi thông báo nhanh chóng đến toàn bộ người tham gia.
+- Node.js 20 or newer
+- npm
+- Prestige Planner Gateway reachable from the browser
 
-### 👤 Dành cho Người tham gia (Attendee)
-- **Khám phá Sự kiện**: Tìm kiếm và tham gia các sự kiện hấp dẫn xung quanh.
-- **Quản lý Vé (e-Ticket)**: Hệ thống vé điện tử dựa trên mã QR giúp check-in nhanh chóng và an toàn.
-- **Dashboard Cá nhân**: Theo dõi lịch sử tham gia, các sự kiện sắp tới và vé đã mua.
-- **Đánh giá & Phản hồi**: Chia sẻ trải nghiệm và đóng góp ý kiến cho các sự kiện đã tham gia.
+## Environment
 
----
+Create a local `.env` file containing the Gateway origin:
 
-## 🚀 Công nghệ Sử dụng
+```dotenv
+VITE_API_URL=http://localhost:8080
+```
 
-Dự án được xây dựng trên nền tảng công nghệ hiện đại nhất:
+The Axios client normalizes `/api/v1`; do not configure a direct service URL. Local `.env` files are ignored by Git and must not contain backend secrets.
 
-| Category | Technology |
-| :--- | :--- |
-| **Core** | React 19, Vite, React Router DOM v7 |
-| **Styling** | TailwindCSS v4, Material UI (MUI), Framer Motion |
-| **Data Viz** | Chart.js, Recharts, React Chartjs 2 |
-| **Utility** | Axios, Lucide React, QR Code React |
-| **Scheduling** | FullCalendar Suite (@fullcalendar/react) |
+## Commands
 
----
+```powershell
+npm ci
+npm run dev
+npm run lint
+npm run build
+npm run preview
+```
 
-## 🛠 Hướng dẫn Cài đặt
+The development server uses `http://localhost:5173` by default. Production output is generated in `dist/` and is not committed.
 
-### Yêu cầu hệ thống
-- **Node.js**: Phiên bản >= 18.x (Khuyên dùng LTS)
-- **NPM** hoặc **Yarn**
-
-### Các bước thực hiện
-
-1. **Clone dự án**
-   ```bash
-   git clone <repository-url>
-   cd Event-Management-Website/Event-Management-Website
-   ```
-
-2. **Cài đặt Dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Khởi chạy môi trường Phát triển**
-   ```bash
-   npm run dev
-   ```
-   Ứng dụng sẽ chạy tại: `http://localhost:5173/`
-
-4. **Đóng gói Production**
-   ```bash
-   npm run build
-   ```
-
----
-
-## 📂 Cấu trúc Thư mục
+## Structure
 
 ```text
 src/
-├── components/       # Các UI components dùng chung (Modals, Layouts, Tables)
-├── pages/            # Các trang giao diện chính (Organizer, Attendee, Public)
-├── router/           # Cấu hình định tuyến (AppRouter)
-├── assets/           # Tài nguyên tĩnh (CSS, Images)
-├── stores/           # Quản lý State (nếu có)
-├── App.jsx           # Component gốc
-└── main.jsx          # Điểm đầu vào (Entry point)
+├── assets/       Static images and video
+├── components/   Shared UI, layouts and modals
+├── lib/          Gateway Axios client
+├── pages/        Public, attendee, organizer and admin pages
+├── router/       Application routes
+├── services/     Feature-level API clients
+└── stores/       Authentication and theme state
 ```
 
----
-
-© 2026 EventHub Project. Build with ❤️ for better event experiences.
+All feature API clients must use `src/lib/axios.js`. Direct calls to Auth, User, Event, Ticket, Order, Payment, Notification, Marketplace, Chat or AI service addresses are forbidden.
