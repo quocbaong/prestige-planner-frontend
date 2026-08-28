@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import logo from '../assets/logo.png';
 
@@ -13,7 +13,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -21,7 +21,7 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
-    
+
     try {
       const user = await login(email, password);
       if (user.role === 'ADMIN') {
@@ -44,7 +44,7 @@ const LoginPage = () => {
       <div className="hidden lg:flex lg:flex-[1.2] relative overflow-hidden bg-[#5F56FF] pt-12 pb-16 px-16 xl:pt-16 xl:pb-24 xl:px-24 flex flex-col justify-between text-white font-sans">
         {/* Animated Gradient Overlay */}
         <div className="absolute inset-0 z-0 bg-gradient-to-tr from-[#4F46E5] via-[#5F56FF] to-[#9333EA] opacity-90"></div>
-        
+
         {/* Decorative Blobs */}
         <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-white/10 rounded-full blur-[120px] animate-pulse"></div>
         <div className="absolute bottom-[-5%] left-[-5%] w-[400px] h-[400px] bg-purple-400/20 rounded-full blur-[100px]"></div>
@@ -53,14 +53,14 @@ const LoginPage = () => {
           <div className="flex items-center gap-3 mb-10 cursor-pointer" onClick={() => navigate('/')}>
             <img src={logo} alt="Prestige Planner" className="h-20 w-auto brightness-0 invert" />
           </div>
-          
+
           <div className="max-w-xl">
             <h1 className="text-6xl xl:text-7xl font-bold leading-[1.05] mb-10 tracking-tight">
               Kiến tạo <br />
               những <span className="text-white/90">khoảnh khắc</span> <br />
               phi thường.
             </h1>
-            
+
             <p className="text-indigo-100/70 text-lg leading-relaxed max-w-md mb-8">
               Không gian làm việc cao cấp cho các nhà tổ chức sự kiện và những người tầm nhìn. Quản lý, mở rộng và truyền cảm hứng với độ chính xác tuyệt đối.
             </p>
@@ -137,8 +137,8 @@ const LoginPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
-                  <input 
-                    type="email" 
+                  <input
+                    type="email"
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -158,7 +158,7 @@ const LoginPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
-                  <input 
+                  <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
                     value={password}
@@ -167,7 +167,7 @@ const LoginPage = () => {
                     placeholder="••••••••"
                     required
                   />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-400 hover:text-indigo-600 transition-colors"
@@ -185,8 +185,8 @@ const LoginPage = () => {
             </div>
 
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isSubmitting}
               className="w-full bg-indigo-600 text-white py-5 px-6 rounded-2xl font-bold text-lg hover:bg-indigo-700 hover:shadow-2xl hover:shadow-indigo-500/30 active:scale-[0.98] transition-all duration-300 transform flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
             >
@@ -203,8 +203,8 @@ const LoginPage = () => {
 
           <p className="mt-12 text-center text-base text-gray-500 font-medium">
             Chưa có tài khoản? {' '}
-            <button 
-              onClick={() => navigate('/signup')} 
+            <button
+              onClick={() => navigate('/signup')}
               className="font-bold text-indigo-600 hover:text-indigo-800 underline underline-offset-4 decoration-2 decoration-indigo-100 hover:decoration-indigo-600 transition-all"
             >
               Tạo tài khoản tổ chức sự kiện của bạn
@@ -212,10 +212,10 @@ const LoginPage = () => {
           </p>
         </div>
       </div>
-      
-      <ForgotPasswordModal 
-        isOpen={showForgotModal} 
-        onClose={() => setShowForgotModal(false)} 
+
+      <ForgotPasswordModal
+        isOpen={showForgotModal}
+        onClose={() => setShowForgotModal(false)}
       />
     </div>
   );

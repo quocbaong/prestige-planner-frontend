@@ -38,7 +38,7 @@ import CreateEventPage from '../pages/CreateEventPage';
 import InvitationAcceptPage from '../pages/InvitationAcceptPage';
 import NotificationPage from '../pages/NotificationPage';
 import SupportPage from '../pages/SupportPage';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -75,7 +75,7 @@ const AppRouter = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/invitations/:token" element={<InvitationAcceptPage />} />
-        
+
         {/* Organizer Protected Routes - With Sidebar/Header */}
         <Route path="/admin" element={<ProtectedRoute allowedRoles={['ADMIN']}><MainLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
@@ -136,5 +136,3 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
-
-

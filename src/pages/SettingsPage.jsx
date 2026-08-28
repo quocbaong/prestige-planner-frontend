@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  CreditCard, 
-  Code2, 
-  ShieldCheck, 
-  Palette, 
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  CreditCard,
+  Code2,
+  ShieldCheck,
+  Palette,
   Database,
   ChevronRight,
   Plus,
@@ -15,7 +15,15 @@ import {
   X,
   Settings
 } from 'lucide-react';
-import api from '../lib/axios';
+import { settingsService } from '../services/settingsService';
+
+const navItems = [
+  { id: 'finance', label: 'Cấu hình Tài chính', icon: CreditCard },
+  { id: 'api', label: 'Tích hợp API', icon: Code2 },
+  { id: 'security', label: 'Bảo mật hệ thống', icon: ShieldCheck },
+  { id: 'branding', label: 'Thương hiệu & UI', icon: Palette },
+  { id: 'backup', label: 'Sao lưu & Khôi phục', icon: Database },
+];
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('finance');
@@ -38,24 +46,19 @@ const SettingsPage = () => {
 
   // Modals state
   const [showStripeModal, setShowStripeModal] = useState(false);
-  const [stripePub, setStripePub] = useState('');
-  const [stripeSec, setStripeSec] = useState('');
-  const [connectingStripe, setConnectingStripe] = useState(false);
-
+  const stripePub = '';
+  const setStripePub = () => {};
+  const stripeSec = '';
+  const setStripeSec = () => {};
+  const connectingStripe = false;
   const [showSendGridModal, setShowSendGridModal] = useState(false);
-  const [sgApiKey, setSgApiKey] = useState('');
-  const [sgEmail, setSgEmail] = useState('');
-  const [connectingSg, setConnectingSg] = useState(false);
+  const sgApiKey = '';
+  const setSgApiKey = () => {};
+  const sgEmail = '';
+  const setSgEmail = () => {};
+  const connectingSg = false;
 
-  const [backupProgress, setBackupProgress] = useState(null);
-
-  const navItems = [
-    { id: 'finance', label: 'Cấu hình Tài chính', icon: CreditCard },
-    { id: 'api', label: 'Tích hợp API', icon: Code2 },
-    { id: 'security', label: 'Bảo mật hệ thống', icon: ShieldCheck },
-    { id: 'branding', label: 'Thương hiệu & UI', icon: Palette },
-    { id: 'backup', label: 'Sao lưu & Khôi phục', icon: Database },
-  ];
+  const [backupProgress] = useState(null);
 
   // Apply colors and typography dynamically to root
   const applyThemeToDOM = (color, font) => {
@@ -70,56 +73,99 @@ const SettingsPage = () => {
   };
 
   // Fetch settings from API
-  const fetchSettings = async () => {
+  const fetchSettings = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await api.get('/admin/settings');
-      const data = res.data;
-      
-      setCurrency(data.currency);
-      setCommissionRate(data.commissionRate);
-      setSubscriptionPlan(data.subscriptionPlan);
-      setStripeActive(data.stripeActive);
-      setSendGridActive(data.sendGridActive);
-      setTwoFactorEnabled(data.twoFactorEnabled);
-      setSessionTimeout(data.sessionTimeout);
-      setMinPasswordLength(data.minPasswordLength);
-      setPrimaryColor(data.primaryColor);
-      setFontFamily(data.fontFamily);
-      setLogoUrl(data.logoUrl || '');
+      const [eventResponse, paymentResponse, securityResponse, brandingResponse, notificationResponse] = await Promise.all([
+        settingsService.getEvent(),
+        settingsService.getPayment(),
+        settingsService.getSecurity(),
+        settingsService.getBranding(),
+        settingsService.getNotification(),
+      ]);
+      const data = paymentResponse.data || {};
+      const read = (key, fallback) => data[key] ?? fallback;
 
-      applyThemeToDOM(data.primaryColor, data.fontFamily);
-    } catch (err) {
-      showToast('Không thể tải cấu hình hệ thống!', 'error');
+      setCurrency((current) => read('finance.currency', current));
+      setCommissionRate((current) => read('finance.commissionRate', current));
+      setSubscriptionPlan((current) => read('finance.subscriptionPlan', current));
+      setStripeActive((current) => read('api.stripeActive', String(current)) === 'true');
+
+      const security = securityResponse.data || {};
+      setTwoFactorEnabled((current) => (security['security.twoFactorEnabled'] ?? String(current)) === 'true');
+      setSessionTimeout((current) => security['security.sessionTimeout'] ?? current);
+      setMinPasswordLength((current) => security['security.minPasswordLength'] ?? current);
+
+      const branding = brandingResponse.data || {};
+      const nextColor = branding['branding.primaryColor'] ?? '#4f46e5';
+      const nextFont = branding['branding.fontFamily'] ?? 'Plus Jakarta Sans';
+      setPrimaryColor(nextColor);
+      setFontFamily(nextFont);
+      setLogoUrl(branding['branding.logoUrl'] ?? '');
+      applyThemeToDOM(nextColor, nextFont);
+
+      const notification = notificationResponse.data || {};
+      setSendGridActive((current) => (notification['api.sendGridActive'] ?? String(current)) === 'true');
+
+      void eventResponse;
+    } catch {
+      setToast({ message: 'Không thể tải cấu hình hệ thống!', type: 'error' });
+      setTimeout(() => setToast(null), 4000);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchSettings();
-  }, []);
+  }, [fetchSettings]);
 
   // Save Settings to API
   const handleSave = async () => {
     try {
       setSaving(true);
-      await api.post('/admin/settings', {
-        currency,
-        commissionRate,
-        subscriptionPlan,
-        stripeActive,
-        sendGridActive,
-        twoFactorEnabled,
-        sessionTimeout,
-        minPasswordLength,
-        primaryColor,
-        fontFamily,
-        logoUrl
-      });
+      if (activeTab === 'finance') {
+        const saved = await settingsService.savePayment({
+          'finance.currency': currency,
+          'finance.commissionRate': String(commissionRate),
+          'finance.subscriptionPlan': subscriptionPlan,
+          'api.stripeActive': String(stripeActive),
+        });
+        const savedData = saved.data || {};
+        setCurrency(savedData['finance.currency'] ?? currency);
+        setCommissionRate(savedData['finance.commissionRate'] ?? commissionRate);
+        setSubscriptionPlan(savedData['finance.subscriptionPlan'] ?? subscriptionPlan);
+        setStripeActive((savedData['api.stripeActive'] ?? String(stripeActive)) === 'true');
+      } else if (activeTab === 'api') {
+        const saved = await settingsService.saveNotification({
+          'api.sendGridActive': String(sendGridActive),
+        });
+        setSendGridActive((saved.data?.['api.sendGridActive'] ?? String(sendGridActive)) === 'true');
+      } else if (activeTab === 'security') {
+        const saved = await settingsService.saveSecurity({
+          'security.twoFactorEnabled': String(twoFactorEnabled),
+          'security.sessionTimeout': String(sessionTimeout),
+          'security.minPasswordLength': String(minPasswordLength),
+        });
+        setTwoFactorEnabled((saved.data?.['security.twoFactorEnabled'] ?? String(twoFactorEnabled)) === 'true');
+        setSessionTimeout(saved.data?.['security.sessionTimeout'] ?? sessionTimeout);
+        setMinPasswordLength(saved.data?.['security.minPasswordLength'] ?? minPasswordLength);
+      } else if (activeTab === 'branding') {
+        const saved = await settingsService.saveBranding({
+          'branding.primaryColor': primaryColor,
+          'branding.fontFamily': fontFamily,
+          'branding.logoUrl': logoUrl,
+        });
+        setPrimaryColor(saved.data?.['branding.primaryColor'] ?? primaryColor);
+        setFontFamily(saved.data?.['branding.fontFamily'] ?? fontFamily);
+        setLogoUrl(saved.data?.['branding.logoUrl'] ?? logoUrl);
+      } else {
+        showToast('Backup/restore chỉ được thực hiện qua runbook vận hành.', 'error');
+        return;
+      }
       applyThemeToDOM(primaryColor, fontFamily);
       showToast('Cập nhật cấu hình hệ thống thành công!', 'success');
-    } catch (err) {
+    } catch {
       showToast('Lưu cấu hình hệ thống thất bại!', 'error');
     } finally {
       setSaving(false);
@@ -140,6 +186,7 @@ const SettingsPage = () => {
     }, 4000);
   };
 
+  /*
   // Stripe Connection Simulation
   const handleConnectStripe = () => {
     if (!stripePub || !stripeSec) {
@@ -180,7 +227,7 @@ const SettingsPage = () => {
           setTimeout(() => {
             setBackupProgress(null);
             showToast('Đã tạo và tải xuống bản sao lưu SQL thành công!', 'success');
-            
+
             // Mock file download
             const blob = new Blob(["-- System Backup SQL File --\nCREATE TABLE system_settings..."], { type: "application/sql" });
             const link = document.createElement("a");
@@ -195,13 +242,29 @@ const SettingsPage = () => {
     }, 300);
   };
 
+  */
+
+  const handleConnectStripe = () => {
+    setShowStripeModal(false);
+    showToast('Contract hiá»‡n táº¡i chá»‰ cho phÃ©p lÆ°u cá» api.stripeActive; khÃ´ng nháº­n secret trÃªn frontend.', 'error');
+  };
+
+  const handleConnectSendGrid = () => {
+    setShowSendGridModal(false);
+    showToast('Contract hiá»‡n táº¡i chÆ°a cÃ³ owner endpoint cho SendGrid/SMTP.', 'error');
+  };
+
+  const handleBackupNow = () => {
+    showToast('Contract Phase 11 chÆ°a cÃ³ owner endpoint cho backup/restore.', 'error');
+  };
+
   // Function to scroll to section
   const scrollToSection = (id) => {
     setActiveTab(id);
     const element = document.getElementById(id);
     const scrollContainer = document.getElementById('settings-scroll-container');
     if (element && scrollContainer) {
-      const topPos = element.offsetTop - 20; 
+      const topPos = element.offsetTop - 20;
       scrollContainer.scrollTo({
         top: topPos,
         behavior: 'smooth'
@@ -251,7 +314,7 @@ const SettingsPage = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] font-sans overflow-hidden relative">
-      
+
       {/* Dynamic Toast Alert */}
       {toast && (
         <div className={`fixed top-6 right-10 z-[100] px-6 py-4 rounded-[20px] shadow-2xl border flex items-center gap-3 animate-bounce transition-all duration-300 ${
@@ -380,8 +443,8 @@ const SettingsPage = () => {
                     key={item.id}
                     onClick={() => scrollToSection(item.id)}
                     className={`w-full flex items-center justify-between px-5 py-4 rounded-[20px] font-bold transition-all duration-300 ${
-                      activeTab === item.id 
-                      ? 'bg-primary text-white shadow-xl shadow-primary/20 transform scale-[1.02]' 
+                      activeTab === item.id
+                      ? 'bg-primary text-white shadow-xl shadow-primary/20 transform scale-[1.02]'
                       : 'text-slate-400 hover:bg-white hover:text-slate-600'
                     }`}
                   >
@@ -397,12 +460,12 @@ const SettingsPage = () => {
         </div>
 
         {/* 3. SCROLLABLE CONTENT AREA */}
-        <div 
+        <div
           id="settings-scroll-container"
           className="flex-1 overflow-y-auto no-scrollbar scroll-smooth bg-slate-50/20"
         >
           <div className="max-w-[900px] mx-auto p-10 space-y-10 pb-48">
-            
+
             {/* Financial Config */}
             <section id="finance" className="bg-white rounded-[32px] p-10 shadow-sm border border-slate-100 space-y-8 transition-all duration-500">
               <div className="flex items-center gap-4">
@@ -434,12 +497,12 @@ const SettingsPage = () => {
                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Gói đăng ký nền tảng</label>
                  <div className="grid grid-cols-3 gap-5">
                     {['CƠ BẢN', 'NÂNG CAO', 'DOANH NGHIỆP'].map((plan) => (
-                      <div 
-                        key={plan} 
+                      <div
+                        key={plan}
                         onClick={() => setSubscriptionPlan(plan)}
                         className={`p-6 rounded-[28px] border-2 transition-all cursor-pointer flex flex-col items-center text-center ${
-                          subscriptionPlan === plan 
-                          ? 'border-primary bg-primary/[0.02] shadow-sm transform scale-105 z-10 font-black' 
+                          subscriptionPlan === plan
+                          ? 'border-primary bg-primary/[0.02] shadow-sm transform scale-105 z-10 font-black'
                           : 'border-slate-50 bg-white hover:border-slate-100 hover:scale-[1.02]'
                         }`}
                       >
@@ -530,7 +593,7 @@ const SettingsPage = () => {
                     <h4 className="text-sm font-bold text-slate-800">Xác thực 2 yếu tố (2FA)</h4>
                     <p className="text-[11px] text-slate-400 font-medium">Bắt buộc cho tất cả tài khoản admin.</p>
                  </div>
-                 <div 
+                 <div
                    onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
                    className={`w-14 h-8 rounded-full p-1 cursor-pointer transition-all duration-500 ${twoFactorEnabled ? 'bg-primary' : 'bg-slate-300'}`}
                  >
@@ -585,7 +648,7 @@ const SettingsPage = () => {
                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Màu chủ đạo thương hiệu</label>
                        <div className="flex flex-wrap gap-2.5">
                           {['#4f46e5', '#e11d48', '#059669', '#d97706', '#0891b2', '#7c3aed', '#ec4899'].map(color => (
-                            <div 
+                            <div
                               key={color}
                               onClick={() => {
                                 setPrimaryColor(color);
@@ -600,14 +663,14 @@ const SettingsPage = () => {
                     <div className="space-y-4">
                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Kiểu chữ mặc định</label>
                        <div className="flex gap-1.5 bg-slate-100/50 p-1.5 rounded-2xl border border-slate-50">
-                          <button 
+                          <button
                             onClick={() => {
                               setFontFamily('Plus Jakarta Sans');
                               applyThemeToDOM(primaryColor, 'Plus Jakarta Sans');
                             }}
                             className={`flex-1 py-3 rounded-xl text-[10px] font-black transition-all ${fontFamily === 'Plus Jakarta Sans' ? 'bg-white shadow-sm text-primary' : 'text-slate-400'}`}
                           >P. Jakarta</button>
-                          <button 
+                          <button
                             onClick={() => {
                               setFontFamily('Inter');
                               applyThemeToDOM(primaryColor, 'Inter');

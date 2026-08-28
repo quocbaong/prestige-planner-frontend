@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Search, Bell, User as UserIcon, Settings, LogOut, Check } from 'lucide-react';
 import NotificationDropdown from '../../common/NotificationDropdown';
-import { useAuth } from '../../../stores/AuthContext';
+import { useAuth } from '../../../stores/useAuth';
 import UserProfileModal from '../../modals/UserProfileModal';
-import axios from '../../../lib/axios';
+import { notificationService } from '../../../services/notificationService';
 
 const AttendeeHeader = () => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -18,7 +18,7 @@ const AttendeeHeader = () => {
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('/notifications');
+      const response = await notificationService.list();
       setNotifications(response.data || []);
     } catch (error) {
       console.error('Lỗi khi tải thông báo:', error);
@@ -26,9 +26,12 @@ const AttendeeHeader = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const initialLoad = setTimeout(fetchNotifications, 0);
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -57,9 +60,9 @@ const AttendeeHeader = () => {
         <div className="flex-1 max-w-[400px]">
           <div className="relative w-full group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-indigo-600 transition-all" />
-            <input 
-              type="text" 
-              placeholder="Tìm kiếm sự kiện..." 
+            <input
+              type="text"
+              placeholder="Tìm kiếm sự kiện..."
               className="w-full bg-slate-50 border-none rounded-2xl py-3 pl-12 pr-4 text-[14px] font-medium text-slate-700 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-100 transition-all outline-none"
             />
           </div>
@@ -72,8 +75,8 @@ const AttendeeHeader = () => {
               key={link.label}
               onClick={() => navigate(link.path)}
               className={`text-[14px] font-black tracking-tight transition-all pb-1 border-b-2 ${
-                location.pathname === link.path 
-                ? 'text-indigo-600 border-indigo-600' 
+                location.pathname === link.path
+                ? 'text-indigo-600 border-indigo-600'
                 : 'text-slate-400 border-transparent hover:text-slate-600'
               }`}
             >
@@ -86,7 +89,7 @@ const AttendeeHeader = () => {
         <div className="flex items-center gap-6">
           {/* Notification Icon */}
           <div className="relative">
-            <button 
+            <button
               onClick={() => setIsNotifOpen(!isNotifOpen)}
               className={`p-2 rounded-xl transition-all relative ${isNotifOpen ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:bg-slate-50'}`}
             >
@@ -97,11 +100,11 @@ const AttendeeHeader = () => {
                 </span>
               )}
             </button>
-            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} onNotificationStateChanged={fetchNotifications} />
           </div>
 
           {/* Settings Icon */}
-          <button 
+          <button
             onClick={() => navigate('/attendee/settings')}
             className={`p-2 rounded-xl text-slate-400 hover:bg-slate-50 hover:text-slate-600 transition-all ${
               location.pathname === '/attendee/settings' ? 'text-indigo-600 bg-indigo-50' : ''
@@ -113,7 +116,7 @@ const AttendeeHeader = () => {
 
           {/* User Profile Trigger and Menu */}
           <div className="relative">
-            <div 
+            <div
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
               className="flex items-center gap-3 pl-6 border-l border-slate-200 cursor-pointer group select-none"
             >
@@ -125,7 +128,7 @@ const AttendeeHeader = () => {
                   {user?.role === 'ATTENDEE' ? 'Thành viên Nexus' : 'Khách mời'}
                 </p>
               </div>
-              
+
               {/* Custom Avatar with premium initials layout */}
               <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-gradient-to-tr from-indigo-500 to-purple-600 text-white ring-2 ring-indigo-100 group-hover:ring-indigo-300 transition-all overflow-hidden shadow-sm">
                 {getInitials(user?.fullName)}
@@ -155,7 +158,7 @@ const AttendeeHeader = () => {
                   </div>
 
                   <div className="px-2 py-2 border-b border-slate-100">
-                    <button 
+                    <button
                       onClick={() => {
                         setIsProfileMenuOpen(false);
                         setIsProfileModalOpen(true);
@@ -165,7 +168,7 @@ const AttendeeHeader = () => {
                       <UserIcon className="text-slate-400 w-4.5 h-4.5" />
                       <span>Hồ sơ của tôi</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setIsProfileMenuOpen(false);
                         navigate('/attendee/settings');
@@ -178,7 +181,7 @@ const AttendeeHeader = () => {
                   </div>
 
                   <div className="px-2 pt-2">
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl transition-colors"
                     >
@@ -194,9 +197,9 @@ const AttendeeHeader = () => {
       </header>
 
       {/* Glassmorphism Detailed Profile Modal */}
-      <UserProfileModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
     </>
   );

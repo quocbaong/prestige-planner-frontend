@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { dashboardService } from '../services/dashboardService';
 import { eventService } from '../services/eventService';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 
 const getDatesInRange = (fromStr, toStr) => {
   const dates = [];
@@ -47,23 +47,22 @@ const OrganizerDashboardPage = () => {
       try {
         setLoading(true);
         const apiPeriod = period === 'week' ? 'day' : period;
-        
-        const [overviewRes, revenueRes, eventsRes, eventRevenueRes] = await Promise.all([
-          dashboardService.getOverview(),
+
+        const [revenueRes, eventsRes, eventRevenueRes] = await Promise.all([
           dashboardService.getRevenue(apiPeriod),
           eventService.getEvents(),
           dashboardService.getRevenue('event')
         ]);
-        
+
         let revenueList = revenueRes.data;
         let calculatedRevenue = 0;
         let calculatedAttendees = 0;
-        
+
         if (period === 'week') {
           const dates = getDatesInRange(dateRange.from, dateRange.to);
           const revenueMap = new Map(revenueList.map(item => [item.groupKey, Number(item.revenue)]));
           const countMap = new Map(revenueList.map(item => [item.groupKey, Number(item.count || 0)]));
-          
+
           revenueList = dates.map(date => {
             const key = formatDateKey(date);
             const label = formatWeekday(date);
@@ -82,7 +81,7 @@ const OrganizerDashboardPage = () => {
           const filteredItems = revenueList.filter(item => item.groupKey.startsWith(selectedYear));
           const revenueMap = new Map(filteredItems.map(item => [item.groupKey, Number(item.revenue)]));
           const countMap = new Map(filteredItems.map(item => [item.groupKey, Number(item.count || 0)]));
-          
+
           const monthsData = Array.from({ length: 12 }, (_, i) => {
             const m = String(i + 1).padStart(2, '0');
             const key = `${selectedYear}-${m}`;
@@ -99,13 +98,13 @@ const OrganizerDashboardPage = () => {
           });
           revenueList = monthsData;
         }
-        
+
         setOverview({
           totalAttendees: calculatedAttendees,
           totalRevenue: calculatedRevenue,
-          upcomingEvents: overviewRes.data?.upcomingEvents || 0
+          upcomingEvents: (eventsRes.data || []).filter(event => ['DRAFT', 'PUBLISHED', 'ON_SALE'].includes(event.status)).length
         });
-        
+
         const colors = ['from-indigo-500 to-indigo-600', 'from-blue-500 to-indigo-500', 'from-indigo-400 to-indigo-500', 'from-indigo-600 to-indigo-700', 'from-indigo-700 to-indigo-800'];
         const mappedRevenue = revenueList.map((item, i) => {
           const maxRev = Math.max(...revenueList.map(r => r.revenue)) || 1;
@@ -144,7 +143,7 @@ const OrganizerDashboardPage = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, [period, dateRange, selectedYear]);
 
@@ -163,7 +162,7 @@ const OrganizerDashboardPage = () => {
           { label: 'Doanh thu tổng', value: loading ? '...' : new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(overview.totalRevenue || 0), change: period === 'week' ? 'Trong tuần chọn' : `Năm ${selectedYear}`, icon: 'payments', color: 'purple' },
           { label: 'Sự kiện sắp tới', value: loading ? '...' : overview.upcomingEvents.toString(), change: 'Chưa diễn ra', icon: 'event_available', color: 'orange' },
         ].map((card, i) => (
-          <motion.div
+          <Motion.div
             key={i}
             whileHover={{ y: -5, scale: 1.02 }}
             className="bg-white p-5 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 hover:shadow-[0_20px_50px_rgba(79,70,229,0.08)] transition-all duration-500 group relative overflow-hidden"
@@ -179,10 +178,10 @@ const OrganizerDashboardPage = () => {
               <span className={`text-[9px] font-black ${card.change.startsWith('+') ? 'text-green-600 bg-green-50' : 'text-slate-400 bg-slate-50'} px-2.5 py-1 rounded-full shadow-sm`}>{card.change}</span>
             </div>
             <h3 className="text-2xl font-black font-headline text-slate-900 relative z-10 tracking-tight">{card.value}</h3>
-          </motion.div>
+          </Motion.div>
         ))}
 
-        <motion.div
+        <Motion.div
           whileHover={{ scale: 1.02 }}
           className="bg-gradient-to-br from-[#4f46e5] to-[#4338ca] p-5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(79,70,229,0.25)] flex flex-col justify-between text-white relative overflow-hidden group cursor-pointer"
         >
@@ -206,7 +205,7 @@ const OrganizerDashboardPage = () => {
               Mời ngay
             </button>
           </div>
-        </motion.div>
+        </Motion.div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -276,7 +275,7 @@ const OrganizerDashboardPage = () => {
               </div>
 
               <AnimatePresence mode="wait">
-                <motion.div
+                <Motion.div
                   key={period}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -296,7 +295,7 @@ const OrganizerDashboardPage = () => {
 
                       {/* The Slim Bar (Neon Style) */}
                       <div className="w-full h-full flex flex-col justify-end items-center relative">
-                        <motion.div
+                        <Motion.div
                           initial={{ height: 0 }}
                           animate={{ height: `${item.height}%` }}
                           transition={{ delay: i * 0.04, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
@@ -311,7 +310,7 @@ const OrganizerDashboardPage = () => {
                               {item.percent}
                             </span>
                           </div>
-                        </motion.div>
+                        </Motion.div>
                       </div>
 
                       <span className="mt-3 text-[9px] sm:text-[11px] font-black text-slate-400 group-hover:text-indigo-600 transition-all duration-300 uppercase tracking-widest">
@@ -319,7 +318,7 @@ const OrganizerDashboardPage = () => {
                       </span>
                     </div>
                   ))}
-                </motion.div>
+                </Motion.div>
               </AnimatePresence>
             </div>
           </div>
@@ -429,12 +428,12 @@ const OrganizerDashboardPage = () => {
               <span className="text-xs font-black text-indigo-400">85%</span>
             </div>
             <div className="w-full bg-white/5 rounded-full h-1.5 mb-6 relative z-10 overflow-hidden shadow-inner">
-              <motion.div
+              <Motion.div
                 initial={{ width: 0 }}
                 animate={{ width: '85%' }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
                 className="bg-gradient-to-r from-indigo-500 to-blue-400 h-full rounded-full shadow-[0_0_15px_rgba(79,70,229,0.5)]"
-              ></motion.div>
+              ></Motion.div>
             </div>
             <div className="flex justify-center relative z-10">
               <button className="px-8 py-2.5 bg-white text-indigo-600 rounded-xl text-[11px] font-black hover:bg-indigo-50 hover:scale-105 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(79,70,229,0.3)] transition-all duration-300 uppercase tracking-widest active:scale-95">

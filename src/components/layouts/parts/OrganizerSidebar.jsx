@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../../assets/logo.png';
-import { useAuth } from '../../../stores/AuthContext';
+import { useAuth } from '../../../stores/useAuth';
 const OrganizerSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,13 +31,13 @@ const OrganizerSidebar = () => {
   return (
     <aside className="h-screen w-64 fixed left-0 top-0 bg-slate-50 dark:bg-slate-950 flex flex-col p-4 border-r border-slate-200/50 dark:border-slate-800/50 z-50">
       <div className="mb-10 px-2 flex justify-center">
-        <div 
+        <div
           className="cursor-pointer group flex flex-col items-center text-center"
           onClick={() => navigate('/organizer/dashboard')}
         >
-          <img 
-            src={logo} 
-            alt="Logo" 
+          <img
+            src={logo}
+            alt="Logo"
             className="h-13 w-auto object-contain transition-transform group-hover:scale-105"
           />
           <div className="w-48 h-1 bg-indigo-100 dark:bg-indigo-900/50 my-2 rounded-full"></div>
@@ -46,8 +46,8 @@ const OrganizerSidebar = () => {
 
       <nav className="flex-grow space-y-1 overflow-y-auto">
         {menuItems.map((item) => {
-          const isActive = item.label === "Sự kiện" 
-            ? location.pathname.startsWith('/organizer/events') 
+          const isActive = item.label === "Sự kiện"
+            ? location.pathname.startsWith('/organizer/events')
             : item.label === "Báo cáo"
             ? location.pathname.startsWith('/organizer/reports')
             : item.label === "Tài chính"
@@ -58,13 +58,13 @@ const OrganizerSidebar = () => {
               key={item.label}
               onClick={() => navigate(item.path)}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-transform hover:translate-x-1 ${
-                isActive 
-                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300' 
+                isActive
+                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300'
                   : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-900'
               }`}
             >
-              <span 
-                className="material-symbols-outlined" 
+              <span
+                className="material-symbols-outlined"
                 style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
               >
                 {item.icon}

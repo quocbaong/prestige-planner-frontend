@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const plans = [
   {
@@ -49,10 +49,10 @@ const PricingSection = () => {
   return (
     <section className="py-24 bg-white overflow-hidden" id="pricing">
       <div className="max-w-7xl mx-auto px-6 md:px-10">
-        
+
         {/* Header */}
         <div className="text-center mb-14 md:mb-18">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -64,13 +64,13 @@ const PricingSection = () => {
             <p className="text-lg text-slate-500 font-body">
               Chọn giải pháp phù hợp với quy mô sự kiện của bạn
             </p>
-          </motion.div>
+          </Motion.div>
         </div>
 
         {/* Pricing Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-center">
           {plans.map((plan, i) => (
-            <motion.div
+            <Motion.div
               key={i}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -104,13 +104,13 @@ const PricingSection = () => {
               </div>
 
               <div className="mt-8">
-                <button 
+                <button
                   className={`w-full py-4 rounded-full font-headline font-black text-sm transition-all duration-300 shadow-lg active:scale-95 ${plan.highlight ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/30' : 'bg-white text-indigo-600 border-2 border-indigo-600/30 hover:bg-indigo-50'}`}
                 >
                   {plan.button}
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           ))}
         </div>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { eventService } from '../services/eventService';
 import { registrationService } from '../services/registrationService';
 import { invitationService } from '../services/invitationService';
@@ -80,7 +80,6 @@ const SendHistoryTab = ({ allAttendees }) => {
 };
 
 const EventSettingsTab = ({ event, setEvent, showToast }) => {
-  const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [settings, setSettings] = useState({
@@ -273,8 +272,8 @@ const EventSettingsTab = ({ event, setEvent, showToast }) => {
       <AnimatePresence>
         {isDeleteModalOpen && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeleteModalOpen(false)} className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" />
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-md bg-white rounded-[3rem] p-8 shadow-2xl z-10 text-center">
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeleteModalOpen(false)} className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm" />
+            <Motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} className="relative w-full max-w-md bg-white rounded-[3rem] p-8 shadow-2xl z-10 text-center">
               <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 ${event.isSalesActive ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'}`}>
                 <span className="material-symbols-outlined text-4xl">
                   {event.isSalesActive ? 'pause_circle' : 'play_circle'}
@@ -301,7 +300,7 @@ const EventSettingsTab = ({ event, setEvent, showToast }) => {
                   {event.isSalesActive ? 'Xác nhận tạm ngưng' : 'Xác nhận mở bán'}
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -468,7 +467,7 @@ const OrganizerEventAttendeesPage = () => {
 
   const [event, setEvent] = useState({ id, name: 'Đang tải...', date: '--', location: '--', status: 'Unknown' });
   const [allAttendees, setAllAttendees] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
@@ -534,7 +533,7 @@ const OrganizerEventAttendeesPage = () => {
             uiStatus = 'Từ chối';
             color = 'rose';
           }
-          
+
           return {
             id: inv.id,
             name: inv.email ? inv.email.split('@')[0] : 'Khách mời',
@@ -609,16 +608,16 @@ const OrganizerEventAttendeesPage = () => {
       showToast('Vui lòng nhập email khách mời', 'error');
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       // Gọi API thực tế
       const res = await invitationService.createInvitations(id, {
         emails: [newAttendee.email]
       });
-      
+
       const newInv = res.data[0] || {};
-      
+
       const attendee = {
         id: newInv.id || Date.now(),
         name: newAttendee.name || newAttendee.email.split('@')[0],
@@ -840,14 +839,14 @@ const OrganizerEventAttendeesPage = () => {
       <AnimatePresence>
         {isAddModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsAddModalOpen(false)}
               className="absolute inset-0 bg-slate-900/40 backdrop-blur-md"
             />
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -984,7 +983,7 @@ const OrganizerEventAttendeesPage = () => {
                   </button>
                 </div>
               </form>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -992,7 +991,7 @@ const OrganizerEventAttendeesPage = () => {
       {/* ── Stats Cards ── */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-5">
         {stats.map((card, i) => (
-          <motion.div
+          <Motion.div
             key={i}
             whileHover={{ y: -4, scale: 1.02 }}
             className="p-6 bg-white rounded-[2rem] shadow-sm border border-slate-100/80 transition-all group"
@@ -1007,7 +1006,7 @@ const OrganizerEventAttendeesPage = () => {
               <h3 className="text-3xl font-black text-slate-900 tracking-tight">{card.value}</h3>
               <p className="text-xs font-bold text-slate-400">Khách</p>
             </div>
-          </motion.div>
+          </Motion.div>
         ))}
       </div>
 
@@ -1023,7 +1022,7 @@ const OrganizerEventAttendeesPage = () => {
             >
               {tab}
               {activeTab === tab && (
-                <motion.div
+                <Motion.div
                   layoutId="activeTab"
                   className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600 rounded-full"
                 />
@@ -1165,7 +1164,7 @@ const OrganizerEventAttendeesPage = () => {
                                         className="fixed inset-0 z-10"
                                         onClick={() => setOpenMenuId(null)}
                                       />
-                                      <motion.div
+                                      <Motion.div
                                         initial={{ opacity: 0, scale: 0.95, y: 10, x: 0 }}
                                         animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
                                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -1215,7 +1214,7 @@ const OrganizerEventAttendeesPage = () => {
                                           <span className="material-symbols-outlined text-lg">delete</span>
                                           Xóa khách mời
                                         </button>
-                                      </motion.div>
+                                      </Motion.div>
                                     </>
                                   )}
                                 </AnimatePresence>
@@ -1293,14 +1292,14 @@ const OrganizerEventAttendeesPage = () => {
       <AnimatePresence>
         {isDetailModalOpen && selectedAttendee && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDetailModalOpen(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -1384,7 +1383,7 @@ const OrganizerEventAttendeesPage = () => {
                   Chỉnh sửa ngay
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -1392,14 +1391,14 @@ const OrganizerEventAttendeesPage = () => {
       <AnimatePresence>
         {isEditModalOpen && selectedAttendee && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsEditModalOpen(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             />
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -1534,7 +1533,7 @@ const OrganizerEventAttendeesPage = () => {
                   </button>
                 </div>
               </form>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -1543,14 +1542,14 @@ const OrganizerEventAttendeesPage = () => {
       <AnimatePresence>
         {isDeleteModalOpen && attendeeToDelete && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDeleteModalOpen(false)}
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -1584,7 +1583,7 @@ const OrganizerEventAttendeesPage = () => {
                   Xác nhận xóa
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -1592,7 +1591,7 @@ const OrganizerEventAttendeesPage = () => {
       {/* ── Toast Notification ── */}
       <AnimatePresence>
         {toast.show && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 50, x: 20 }}
             animate={{ opacity: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, scale: 0.9, x: 20 }}
@@ -1607,7 +1606,7 @@ const OrganizerEventAttendeesPage = () => {
             <button onClick={() => setToast({ ...toast, show: false })} className="text-slate-400 hover:text-white transition-colors">
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
     </div>

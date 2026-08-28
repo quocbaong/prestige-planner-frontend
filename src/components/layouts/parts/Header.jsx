@@ -3,22 +3,22 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { Search, Bell, Mail, ChevronRight, Settings, User as UserIcon, LogOut, Check } from 'lucide-react';
 import UserProfileModal from '../../modals/UserProfileModal';
 import NotificationDropdown from '../../common/NotificationDropdown';
-import { useAuth } from '../../../stores/AuthContext';
-import axios from '../../../lib/axios';
+import { useAuth } from '../../../stores/useAuth';
+import { notificationService } from '../../../services/notificationService';
 
 const Header = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  
+
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const fetchNotifications = async () => {
     try {
-      const response = await axios.get('/notifications');
+      const response = await notificationService.list();
       setNotifications(response.data || []);
     } catch (error) {
       console.error('Lỗi khi tải thông báo:', error);
@@ -26,9 +26,12 @@ const Header = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const initialLoad = setTimeout(fetchNotifications, 0);
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
@@ -134,10 +137,10 @@ const Header = () => {
               )}
             </button>
 
-            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+            <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} onNotificationStateChanged={fetchNotifications} />
 
-            <Link 
-              to="/admin/settings" 
+            <Link
+              to="/admin/settings"
               className={`p-2 rounded-xl transition-all ${
                 location.pathname === '/admin/settings' ? 'bg-primary/10 text-primary' : 'hover:bg-gray-50 text-slate-600'
               }`}
@@ -163,7 +166,7 @@ const Header = () => {
                   {user?.role === 'ADMIN' ? 'Hệ thống Quản trị' : 'Quản trị viên'}
                 </p>
               </div>
-              
+
               {/* Custom Avatar with premium initials layout */}
               <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-gradient-to-tr from-primary to-indigo-600 text-white ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all overflow-hidden shadow-sm">
                 {getInitials(user?.fullName)}
@@ -193,7 +196,7 @@ const Header = () => {
                   </div>
 
                   <div className="px-2 py-2 border-b border-slate-100">
-                    <button 
+                    <button
                       onClick={() => {
                         setIsProfileMenuOpen(false);
                         setIsProfileModalOpen(true);
@@ -203,7 +206,7 @@ const Header = () => {
                       <UserIcon className="text-slate-400 w-4.5 h-4.5" />
                       <span>Hồ sơ cá nhân</span>
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setIsProfileMenuOpen(false);
                         navigate('/admin/settings');
@@ -216,7 +219,7 @@ const Header = () => {
                   </div>
 
                   <div className="px-2 pt-2">
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-rose-50 text-rose-600 text-sm font-bold rounded-xl transition-colors"
                     >

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from '../lib/axios';
+import { adminEventService } from '../services/adminEventService';
+import { financeService } from '../services/financeService';
 import StatCard from '../components/ui/StatCard';
 import {
   Ticket,
@@ -34,7 +35,7 @@ ChartJS.register(
   Legend
 );
 
-const ActivityItem = ({ icon: Icon, color, title, time, onClick }) => (
+const ActivityItem = ({ icon: Icon, color, title, time, onClick }) => (void Icon,
   <div onClick={onClick} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-2xl transition-all cursor-pointer group">
     <div className={`p-2.5 rounded-xl ${color}`}>
       <Icon className="w-5 h-5" />
@@ -72,14 +73,14 @@ const DeadlineItem = ({ title, event, time, progress, color, date }) => (
 const DashboardPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
-  
+
   const [selectedDate, setSelectedDate] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   });
-  
+
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(() => parseInt(selectedDate.split('-')[0]));
 
@@ -94,7 +95,7 @@ const DashboardPage = () => {
     progress: 50
   });
 
-  const [activities, setActivities] = useState([
+  const [activities] = useState([
     {
       id: 1,
       icon: Ticket,
@@ -165,7 +166,7 @@ const DashboardPage = () => {
       alert("Vui lòng điền đầy đủ tên thời hạn và sự kiện!");
       return;
     }
-    
+
     let color = "bg-blue-500";
     if (newDeadline.progress >= 80) color = "bg-red-500";
     else if (newDeadline.progress < 40) color = "bg-gray-300";
@@ -191,33 +192,58 @@ const DashboardPage = () => {
     });
   };
 
-  const fetchDashboardStats = async () => {
+  const fetchDashboardStats = useCallback(async () => {
     try {
       setLoading(true);
       const [year, month] = selectedDate.split('-');
-      const response = await axios.get('/admin/dashboard', {
-        params: { month: parseInt(month), year: parseInt(year) }
+      const [eventsResponse, financeResponse] = await Promise.all([
+        adminEventService.list({ status: undefined }),
+        financeService.getAdminOverview(),
+      ]);
+      const events = Array.isArray(eventsResponse.data) ? eventsResponse.data : eventsResponse.data?.events || [];
+      const finance = financeResponse.data || {};
+      const eventsForMonth = events.filter((event) => {
+        const date = event.startDate ? new Date(event.startDate) : null;
+        return date && date.getFullYear() === Number(year) && date.getMonth() + 1 === Number(month);
       });
-      setStats(response.data);
+      const categories = events.reduce((result, event) => {
+        const name = event.category || 'OTHER';
+        const existing = result.find((item) => item.name === name);
+        if (existing) existing.count += 1;
+        else result.push({ name, count: 1 });
+        return result;
+      }, []).map((item) => ({
+        name: item.name,
+        percent: events.length ? Math.round((item.count / events.length) * 100) : 0,
+      }));
+      const monthlyRevenue = eventsForMonth.map((event) => ({
+        month: event.title,
+        revenue: Number(event.revenue || 0),
+      }));
+      setStats({
+        totalRevenue: Number(finance.totalRevenue || 0),
+        totalEvents: events.length,
+        totalAttendees: events.reduce((sum, event) => sum + Number(event.currentAttendees || 0), 0),
+        satisfactionRate: 0,
+        monthlyRevenue,
+        eventCategories: categories,
+      });
     } catch (error) {
       console.error('Lỗi khi tải dữ liệu dashboard', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchDashboardStats();
-  }, [selectedDate]);
+  }, [fetchDashboardStats]);
 
   const handleExport = async () => {
     try {
       const [year, month] = selectedDate.split('-');
-      const response = await axios.get('/admin/dashboard/export', {
-        params: { month: parseInt(month), year: parseInt(year) },
-        responseType: 'blob',
-      });
-      
+      const response = await financeService.exportAdmin();
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -278,7 +304,7 @@ const DashboardPage = () => {
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowMonthPicker(!showMonthPicker)}
               className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-xl border border-border-color font-bold text-sm text-text-primary hover:bg-gray-50 transition-all"
             >
@@ -309,8 +335,8 @@ const DashboardPage = () => {
                           setShowMonthPicker(false);
                         }}
                         className={`py-2 text-sm font-bold rounded-xl transition-all ${
-                          isSelected 
-                            ? 'bg-primary text-white shadow-md shadow-primary/20' 
+                          isSelected
+                            ? 'bg-primary text-white shadow-md shadow-primary/20'
                             : 'bg-gray-50 hover:bg-gray-100 text-text-secondary hover:text-primary'
                         }`}
                       >
@@ -322,7 +348,7 @@ const DashboardPage = () => {
               </div>
             )}
           </div>
-          <button 
+          <button
             onClick={handleExport}
             className="flex items-center gap-2 bg-primary px-5 py-2.5 rounded-xl text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary-hover transition-all"
           >
@@ -455,7 +481,7 @@ const DashboardPage = () => {
         <div className="bg-white p-8 rounded-[32px] border border-border-color">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-bold text-text-primary">Hoạt động gần đây</h3>
-            <button 
+            <button
               onClick={() => {
                 if (location.pathname.startsWith('/admin')) {
                   navigate('/admin/notifications');
@@ -510,7 +536,7 @@ const DashboardPage = () => {
               />
             ))}
           </div>
-          <button 
+          <button
             onClick={() => setIsAddDeadlineOpen(true)}
             className="w-full mt-6 py-3 border-2 border-dashed border-gray-200 rounded-2xl text-text-secondary text-sm font-bold flex items-center justify-center gap-2 hover:bg-white/50 hover:border-primary/30 hover:text-primary transition-all group"
           >
@@ -528,14 +554,14 @@ const DashboardPage = () => {
               <div className={`p-4 rounded-[20px] ${selectedActivity.color.split(' ')[0]}`}>
                 <selectedActivity.icon className="w-6 h-6" />
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedActivity(null)}
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all font-bold text-lg"
               >
                 ✕
               </button>
             </div>
-            
+
             <div className="space-y-3 text-left">
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-primary/10 text-primary">
@@ -543,18 +569,18 @@ const DashboardPage = () => {
                 </span>
                 <span className="text-[11px] font-bold text-slate-400">{selectedActivity.time}</span>
               </div>
-              
+
               <h3 className="text-xl font-black text-slate-800 leading-tight">
                 {selectedActivity.title}
               </h3>
-              
+
               <p className="text-slate-500 text-sm leading-relaxed font-medium pt-2">
                 {selectedActivity.detail}
               </p>
             </div>
 
             <div className="flex items-center gap-3 mt-4">
-              <button 
+              <button
                 onClick={() => setSelectedActivity(null)}
                 className="w-full py-4 bg-primary hover:bg-primary-hover text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95"
               >
@@ -571,7 +597,7 @@ const DashboardPage = () => {
           <div className="bg-white w-full max-w-lg rounded-[32px] p-8 border border-slate-100 shadow-[0_30px_60px_rgba(0,0,0,0.15)] flex flex-col gap-6 animate-in zoom-in-95 duration-300">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-black text-slate-800 uppercase tracking-widest">Thêm thời hạn mới</h3>
-              <button 
+              <button
                 onClick={() => setIsAddDeadlineOpen(false)}
                 className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all font-bold text-lg"
               >
@@ -582,7 +608,7 @@ const DashboardPage = () => {
             <form onSubmit={handleAddDeadline} className="space-y-4 text-left">
               <div className="space-y-1">
                 <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">Tên thời hạn</label>
-                <input 
+                <input
                   type="text"
                   required
                   placeholder="Ví dụ: Chốt danh sách báo chí"
@@ -594,7 +620,7 @@ const DashboardPage = () => {
 
               <div className="space-y-1">
                 <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">Thuộc sự kiện</label>
-                <input 
+                <input
                   type="text"
                   required
                   placeholder="Ví dụ: Digital Marketing Expo"
@@ -607,7 +633,7 @@ const DashboardPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">Mốc thời gian</label>
-                  <select 
+                  <select
                     value={newDeadline.time}
                     onChange={(e) => setNewDeadline(prev => ({ ...prev, time: e.target.value }))}
                     className="w-full text-sm font-bold text-slate-700 bg-slate-50 border border-slate-200 px-4 py-3.5 rounded-2xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
@@ -623,7 +649,7 @@ const DashboardPage = () => {
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block">Giờ / Ngày</label>
-                  <input 
+                  <input
                     type="text"
                     placeholder="Ví dụ: 17:00 hoặc 12/10"
                     value={newDeadline.date}
@@ -642,7 +668,7 @@ const DashboardPage = () => {
                     {newDeadline.progress >= 80 ? 'Khẩn cấp' : 'Tiêu chuẩn'}
                   </span>
                 </div>
-                <input 
+                <input
                   type="range"
                   min="0"
                   max="100"
@@ -653,14 +679,14 @@ const DashboardPage = () => {
               </div>
 
               <div className="flex items-center gap-3 pt-6">
-                <button 
+                <button
                   type="button"
                   onClick={() => setIsAddDeadlineOpen(false)}
                   className="flex-1 py-4 bg-slate-50 hover:bg-slate-100 text-slate-500 font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all active:scale-95"
                 >
                   Hủy
                 </button>
-                <button 
+                <button
                   type="submit"
                   className="flex-1 py-4 bg-primary hover:bg-primary-hover text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-lg shadow-primary/20 transition-all active:scale-95"
                 >

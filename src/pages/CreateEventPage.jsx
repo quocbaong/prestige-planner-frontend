@@ -1,31 +1,31 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, 
-  MapPin, 
-  Tag, 
-  Image as ImageIcon, 
-  Users, 
-  AlertCircle, 
-  FileText, 
-  ArrowRight, 
-  ArrowLeft, 
-  CheckCircle, 
-  Music, 
-  Terminal, 
-  Pizza, 
-  Palette, 
-  Briefcase, 
-  Trophy, 
-  GraduationCap, 
-  PartyPopper, 
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+import {
+  Calendar,
+  MapPin,
+  Tag,
+  Image as ImageIcon,
+  Users,
+  AlertCircle,
+  FileText,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle,
+  Music,
+  Terminal,
+  Pizza,
+  Palette,
+  Briefcase,
+  Trophy,
+  GraduationCap,
+  PartyPopper,
   HelpCircle,
   X,
   Plus
 } from 'lucide-react';
 import { eventService } from '../services/eventService';
-import { useAuth } from '../stores/AuthContext';
+import { useAuth } from '../stores/useAuth';
 
 const CATEGORIES = [
   { value: 'MUSIC', label: 'Âm nhạc', icon: Music, color: 'from-pink-500 to-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/20', text: 'text-rose-600' },
@@ -169,6 +169,7 @@ const CreateEventPage = () => {
   };
 
   const currentCategoryObj = CATEGORIES.find(c => c.value === form.category);
+  void currentCategoryObj;
 
   return (
     <div className="min-h-[calc(100vh-80px)] bg-[#f8fafc] p-6 lg:p-10 flex flex-col justify-between">
@@ -177,7 +178,7 @@ const CreateEventPage = () => {
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-500/5 rounded-full blur-[80px] pointer-events-none"></div>
 
       <div className="max-w-4xl mx-auto w-full space-y-8 relative z-10">
-        
+
         {/* Header Section */}
         <div className="flex justify-between items-center pb-6 border-b border-slate-100">
           <div>
@@ -189,7 +190,7 @@ const CreateEventPage = () => {
             </h1>
             <p className="text-slate-500 text-sm mt-1">Cung cấp các thông tin cần thiết để khởi tạo sự kiện của bạn.</p>
           </div>
-          <button 
+          <button
             onClick={() => navigate(redirectPath)}
             className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold text-sm transition-all shadow-sm flex items-center gap-2"
           >
@@ -208,7 +209,7 @@ const CreateEventPage = () => {
             </span>
           </div>
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-            <motion.div 
+            <Motion.div
               className="h-full bg-gradient-to-r from-indigo-500 to-blue-500 rounded-full"
               initial={{ width: '0%' }}
               animate={{ width: `${(step / 3) * 100}%` }}
@@ -218,19 +219,19 @@ const CreateEventPage = () => {
 
           <div className="grid grid-cols-3 gap-2 mt-6">
             {[1, 2, 3].map((num) => (
-              <div 
-                key={num} 
+              <div
+                key={num}
                 className={`flex items-center gap-2.5 py-1 px-2 border-b-2 transition-all duration-300 ${
-                  step >= num 
-                    ? 'border-indigo-600 text-slate-800 font-bold' 
+                  step >= num
+                    ? 'border-indigo-600 text-slate-800 font-bold'
                     : 'border-slate-100 text-slate-400 font-medium'
                 }`}
               >
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
-                  step === num 
-                    ? 'bg-indigo-600 text-white' 
-                    : step > num 
-                    ? 'bg-indigo-100 text-indigo-700' 
+                  step === num
+                    ? 'bg-indigo-600 text-white'
+                    : step > num
+                    ? 'bg-indigo-100 text-indigo-700'
                     : 'bg-slate-100 text-slate-400'
                 }`}>
                   {num}
@@ -248,7 +249,7 @@ const CreateEventPage = () => {
         {/* Alerts & Errors */}
         <AnimatePresence>
           {error && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -256,11 +257,11 @@ const CreateEventPage = () => {
             >
               <AlertCircle className="w-5 h-5 shrink-0 text-rose-500 mt-0.5" />
               <div className="text-sm font-semibold">{error}</div>
-            </motion.div>
+            </Motion.div>
           )}
 
           {success && (
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               className="bg-emerald-50 border border-emerald-200/50 text-emerald-800 p-8 rounded-[2rem] text-center space-y-4 shadow-xl"
@@ -272,7 +273,7 @@ const CreateEventPage = () => {
               <p className="text-sm text-slate-500 font-medium max-w-sm mx-auto">
                 Sự kiện của bạn đã được lưu nháp thành công. Đang chuyển hướng về trang danh sách sự kiện...
               </p>
-            </motion.div>
+            </Motion.div>
           )}
         </AnimatePresence>
 
@@ -282,7 +283,7 @@ const CreateEventPage = () => {
             <AnimatePresence mode="wait">
               {/* STEP 1: BASIC INFORMATION */}
               {step === 1 && (
-                <motion.div
+                <Motion.div
                   key="step1"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -360,8 +361,8 @@ const CreateEventPage = () => {
                             key={cat.value}
                             onClick={() => setForm(p => ({ ...p, category: cat.value }))}
                             className={`p-4 rounded-2xl border-2 cursor-pointer flex flex-col justify-between h-28 transition-all hover:translate-y-[-2px] ${
-                              isSelected 
-                                ? 'border-indigo-600 bg-indigo-50/50 shadow-md shadow-indigo-100 dark:shadow-none' 
+                              isSelected
+                                ? 'border-indigo-600 bg-indigo-50/50 shadow-md shadow-indigo-100 dark:shadow-none'
                                 : 'border-slate-100 bg-white hover:border-slate-200'
                             }`}
                           >
@@ -395,19 +396,19 @@ const CreateEventPage = () => {
                         Thêm
                       </button>
                     </div>
-                    
+
                     {/* Tag Pills */}
                     {tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 pt-2">
                         {tags.map((tag, idx) => (
-                          <span 
+                          <span
                             key={idx}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 rounded-full text-xs font-bold text-slate-700 transition-colors"
                           >
                             #{tag}
-                            <button 
-                              type="button" 
-                              onClick={() => handleRemoveTag(idx)} 
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTag(idx)}
                               className="w-4 h-4 bg-slate-200 hover:bg-rose-100 hover:text-rose-600 rounded-full flex items-center justify-center transition-colors"
                             >
                               <X className="w-2.5 h-2.5" />
@@ -417,12 +418,12 @@ const CreateEventPage = () => {
                       </div>
                     )}
                   </div>
-                </motion.div>
+                </Motion.div>
               )}
 
               {/* STEP 2: TIME & LOCATION */}
               {step === 2 && (
-                <motion.div
+                <Motion.div
                   key="step2"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -556,12 +557,12 @@ const CreateEventPage = () => {
                       />
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               )}
 
               {/* STEP 3: BANNER, THUMBNAIL & ATTENDEE LIMITS */}
               {step === 3 && (
-                <motion.div
+                <Motion.div
                   key="step3"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -617,9 +618,9 @@ const CreateEventPage = () => {
                     </span>
                     <div className="w-full aspect-video rounded-3xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center overflow-hidden shadow-inner relative group">
                       {form.bannerUrl && !bannerPreviewError ? (
-                        <img 
-                          src={form.bannerUrl} 
-                          alt="Banner Preview" 
+                        <img
+                          src={form.bannerUrl}
+                          alt="Banner Preview"
                           className="w-full h-full object-cover"
                           onError={() => setBannerPreviewError(true)}
                         />
@@ -634,7 +635,7 @@ const CreateEventPage = () => {
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
 

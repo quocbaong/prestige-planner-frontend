@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Calendar, 
-  MapPin, 
-  ChevronRight, 
+import {
+  Calendar,
+  MapPin,
+  ChevronRight,
   Search,
   Layout,
   Filter,
@@ -23,6 +23,17 @@ const categoryMap = {
   OTHER: { label: 'Khác', icon: 'event' }
 };
 
+const categories = [
+  { label: 'Tất cả', value: null },
+  { label: 'Công nghệ', value: 'TECH' },
+  { label: 'Âm nhạc', value: 'MUSIC' },
+  { label: 'Doanh nghiệp', value: 'BUSINESS' },
+  { label: 'Ẩm thực', value: 'FOOD' },
+  { label: 'Nghệ thuật', value: 'ART' },
+  { label: 'Thể thao', value: 'SPORTS' },
+  { label: 'Giáo dục', value: 'EDUCATION' }
+];
+
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
@@ -39,6 +50,7 @@ const formatPrice = (price) => {
 };
 
 const AttendeeExplorePage = () => {
+  void formatPrice;
   const navigate = useNavigate();
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [events, setEvents] = useState([]);
@@ -82,23 +94,12 @@ const AttendeeExplorePage = () => {
     localStorage.setItem('favorites', JSON.stringify(updated));
     window.dispatchEvent(new Event('storage'));
   };
-  
+
   // Filters state
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('Tất cả');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
-  
-  const categories = [
-    { label: 'Tất cả', value: null },
-    { label: 'Công nghệ', value: 'TECH' },
-    { label: 'Âm nhạc', value: 'MUSIC' },
-    { label: 'Doanh nghiệp', value: 'BUSINESS' },
-    { label: 'Ẩm thực', value: 'FOOD' },
-    { label: 'Nghệ thuật', value: 'ART' },
-    { label: 'Thể thao', value: 'SPORTS' },
-    { label: 'Giáo dục', value: 'EDUCATION' }
-  ];
 
   // Fetch Featured Events on mount
   useEffect(() => {
@@ -121,7 +122,7 @@ const AttendeeExplorePage = () => {
     const fetchEvents = async () => {
       try {
         setLoadingEvents(true);
-        
+
         // Find category value
         const catObj = categories.find(c => c.label === activeCategory);
         const categoryValue = catObj ? catObj.value : null;
@@ -157,24 +158,24 @@ const AttendeeExplorePage = () => {
 
   return (
     <div className="p-8 lg:p-12 space-y-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 bg-[#fbfcff] min-h-screen pb-32">
-       
+
        {/* Filter Context */}
        <div className="flex flex-col xl:flex-row items-center gap-6 mb-4">
           <div className="flex-1 flex items-center bg-white border border-slate-100 rounded-[24px] px-6 py-4 w-full shadow-sm">
              <Search className="w-5 h-5 text-slate-400 mr-4" />
-             <input 
-               type="text" 
+             <input
+               type="text"
                value={search}
                onChange={(e) => setSearch(e.target.value)}
-               placeholder="Tìm kiếm sự kiện, hội thảo..." 
-               className="bg-transparent border-none outline-none text-slate-700 w-full placeholder:text-slate-400 font-bold text-[15px]" 
+               placeholder="Tìm kiếm sự kiện, hội thảo..."
+               className="bg-transparent border-none outline-none text-slate-700 w-full placeholder:text-slate-400 font-bold text-[15px]"
              />
           </div>
           <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
              <div className="bg-white border border-slate-100 px-6 py-3 rounded-[24px] font-bold text-[14px] text-slate-600 flex items-center gap-2 shadow-sm relative">
                 <Calendar className="w-5 h-5 text-indigo-500" />
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
                   className="border-none outline-none font-bold text-[14px] text-slate-600 bg-transparent"
@@ -182,7 +183,7 @@ const AttendeeExplorePage = () => {
              </div>
              <div className="bg-white border border-slate-100 px-6 py-3 rounded-[24px] font-bold text-[14px] text-slate-600 flex items-center gap-2 shadow-sm">
                 <MapPin className="w-5 h-5 text-indigo-500" />
-                <select 
+                <select
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
                   className="border-none outline-none font-bold text-[14px] text-slate-600 bg-transparent cursor-pointer"
@@ -196,7 +197,7 @@ const AttendeeExplorePage = () => {
                 </select>
              </div>
              {(search || selectedCity || selectedDate || activeCategory !== 'Tất cả') && (
-               <button 
+               <button
                  onClick={() => {
                    setSearch('');
                    setSelectedCity('');
@@ -231,7 +232,7 @@ const AttendeeExplorePage = () => {
          ) : featuredEvents.length > 0 ? (
            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
              {/* Highlight Card */}
-             <div 
+             <div
                onClick={() => navigate(`/attendee/events/${featuredEvents[0].slug}`)}
                className="lg:col-span-2 group relative rounded-[40px] overflow-hidden cursor-pointer h-[480px] shadow-sm hover:shadow-xl transition-all duration-500"
              >
@@ -266,8 +267,8 @@ const AttendeeExplorePage = () => {
              {/* Small Cards */}
              <div className="flex flex-col gap-8">
                {featuredEvents.slice(1, 3).map(c => (
-                 <div 
-                   key={c.id} 
+                 <div
+                   key={c.id}
                    onClick={() => navigate(`/attendee/events/${c.slug}`)}
                    className="flex-1 group relative rounded-[32px] overflow-hidden cursor-pointer h-[224px] shadow-sm hover:shadow-xl transition-all duration-500"
                  >
@@ -295,7 +296,7 @@ const AttendeeExplorePage = () => {
                    </div>
                  </div>
                ))}
-               
+
                {/* If only 1 featured event exists, display standard suggestions */}
                {featuredEvents.length === 1 && (
                  <div className="flex-1 bg-indigo-50/40 border border-dashed border-indigo-100 rounded-[32px] p-8 flex flex-col justify-center items-center text-center">
@@ -322,9 +323,9 @@ const AttendeeExplorePage = () => {
            </div>
            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
              {categories.map(cat => (
-               <button 
-                 key={cat.label} 
-                 onClick={() => setActiveCategory(cat.label)} 
+               <button
+                 key={cat.label}
+                 onClick={() => setActiveCategory(cat.label)}
                  className={`px-6 py-2.5 rounded-full text-[13px] font-black tracking-wide whitespace-nowrap transition-all ${activeCategory === cat.label ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-50'}`}
                >
                  {cat.label}
@@ -342,8 +343,8 @@ const AttendeeExplorePage = () => {
          ) : events.length > 0 ? (
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
              {events.map(event => (
-               <div 
-                 key={event.id} 
+               <div
+                 key={event.id}
                  onClick={() => navigate(`/attendee/events/${event.slug}`)}
                  className="bg-white rounded-[40px] overflow-hidden shadow-sm border border-slate-50 hover:shadow-xl transition-all group cursor-pointer flex flex-col h-full"
                >

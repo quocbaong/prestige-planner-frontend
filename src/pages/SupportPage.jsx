@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { useAuth } from '../stores/AuthContext';
-import { 
-  HelpCircle, 
-  BookOpen, 
-  MessageSquare, 
-  PhoneCall, 
-  Search, 
-  ChevronDown, 
-  Send, 
-  CheckCircle, 
-  AlertCircle, 
-  DollarSign, 
+import { useAuth } from '../stores/useAuth';
+import {
+  HelpCircle,
+  BookOpen,
+  MessageSquare,
+  PhoneCall,
+  Search,
+  ChevronDown,
+  Send,
+  AlertCircle,
+  DollarSign,
   Sparkles,
   UserCheck,
   ArrowRight
@@ -22,13 +21,12 @@ const SupportPage = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFaq, setActiveFaq] = useState(null);
-  
+
   // Support ticket form states
   const [ticketSubject, setTicketSubject] = useState('');
   const [ticketCategory, setTicketCategory] = useState('');
   const [ticketMessage, setTicketMessage] = useState('');
-  const [submittingTicket, setSubmittingTicket] = useState(false);
-  const [ticketSuccess, setTicketSuccess] = useState(false);
+  const supportTicketCreationSupported = false;
 
   // Chat assistant state
   const [chatOpen, setChatOpen] = useState(false);
@@ -103,18 +101,8 @@ const SupportPage = () => {
 
   const handleTicketSubmit = (e) => {
     e.preventDefault();
-    if (!ticketSubject || !ticketCategory || !ticketMessage) return;
-
-    setSubmittingTicket(true);
-    // Simulate API request to create feedback ticket
-    setTimeout(() => {
-      setSubmittingTicket(false);
-      setTicketSuccess(true);
-      setTicketSubject('');
-      setTicketCategory('');
-      setTicketMessage('');
-      setTimeout(() => setTicketSuccess(false), 5000);
-    }, 1500);
+    // The frozen contract has no attendee/organizer ticket-create endpoint.
+    window.alert('Contract hiá»‡n táº¡i chÆ°a cÃ³ owner endpoint cho táº¡o support ticket.');
   };
 
   const handleBotQuestionClick = (question, answer) => {
@@ -145,22 +133,22 @@ const SupportPage = () => {
 
   return (
     <div className="flex flex-col h-full bg-[#f8fafc] font-sans overflow-y-auto no-scrollbar">
-      
+
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-800 text-white py-14 px-10 relative overflow-hidden flex-shrink-0">
         {/* Decorative background shapes */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-y-12 translate-x-12 pointer-events-none"></div>
         <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-purple-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        
+
         <div className="max-w-[1200px] mx-auto space-y-6 relative z-10">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full text-xs font-black uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
             <span>Trang Hỗ Trợ Hệ Thống</span>
           </div>
-          
+
           <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-none">
-            {role === 'ADMIN' ? 'Trung tâm Hỗ trợ Quản trị viên' : 
-             role === 'ORGANIZER' ? 'Trung tâm Hỗ trợ Nhà tổ chức' : 
+            {role === 'ADMIN' ? 'Trung tâm Hỗ trợ Quản trị viên' :
+             role === 'ORGANIZER' ? 'Trung tâm Hỗ trợ Nhà tổ chức' :
              'Trung tâm Hỗ trợ Người tham gia'}
           </h1>
           <p className="text-indigo-100 max-w-xl font-bold text-sm lg:text-base leading-relaxed">
@@ -172,8 +160,8 @@ const SupportPage = () => {
           {/* Search Box */}
           <div className="max-w-xl relative mt-4">
             <Search className="w-5 h-5 text-slate-400 absolute left-5 top-1/2 -translate-y-1/2" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Nhập câu hỏi hoặc từ khóa tìm kiếm..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -185,10 +173,10 @@ const SupportPage = () => {
 
       {/* Main Grid Content */}
       <div className="max-w-[1200px] w-full mx-auto px-10 py-12 grid grid-cols-12 gap-8">
-        
+
         {/* Left Column: FAQ & Interactive Tools (8/12) */}
         <div className="col-span-12 lg:col-span-8 space-y-8">
-          
+
           {/* FAQ Section */}
           <div className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100/50">
             <h2 className="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
@@ -200,7 +188,7 @@ const SupportPage = () => {
               {currentFaqs
                 .filter(faq => faq.q.toLowerCase().includes(searchQuery.toLowerCase()) || faq.a.toLowerCase().includes(searchQuery.toLowerCase()))
                 .map((faq, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="border border-slate-100 rounded-2xl overflow-hidden transition-all duration-300"
                   >
@@ -218,7 +206,7 @@ const SupportPage = () => {
                     )}
                   </div>
                 ))}
-              
+
               {currentFaqs.filter(faq => faq.q.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
                 <div className="text-center py-10 space-y-2">
                   <AlertCircle className="w-12 h-12 text-slate-300 mx-auto" />
@@ -232,7 +220,7 @@ const SupportPage = () => {
           {role === 'ORGANIZER' && (
             <div className="bg-gradient-to-br from-indigo-900 to-purple-950 text-white rounded-[32px] p-8 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-2xl -translate-y-8 translate-x-8"></div>
-              
+
               <h2 className="text-lg font-black uppercase tracking-wider mb-6 flex items-center gap-2 text-indigo-200">
                 <DollarSign className="w-5 h-5 text-indigo-400" />
                 <span>Công Cụ Tính Doanh Thu Thực Nhận</span>
@@ -241,29 +229,29 @@ const SupportPage = () => {
               <div className="grid grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Số vé ước tính</label>
-                  <input 
-                    type="number" 
-                    value={calcTickets} 
-                    onChange={(e) => setCalcTickets(e.target.value)} 
-                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/50" 
+                  <input
+                    type="number"
+                    value={calcTickets}
+                    onChange={(e) => setCalcTickets(e.target.value)}
+                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Giá vé (đ)</label>
-                  <input 
-                    type="number" 
-                    value={calcPrice} 
-                    onChange={(e) => setCalcPrice(e.target.value)} 
-                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/50" 
+                  <input
+                    type="number"
+                    value={calcPrice}
+                    onChange={(e) => setCalcPrice(e.target.value)}
+                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Tỷ lệ hoa hồng (%)</label>
-                  <input 
-                    type="number" 
-                    value={calcCommission} 
-                    onChange={(e) => setCalcCommission(e.target.value)} 
-                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/50" 
+                  <input
+                    type="number"
+                    value={calcCommission}
+                    onChange={(e) => setCalcCommission(e.target.value)}
+                    className="w-full bg-white/10 border border-white/10 rounded-xl p-3.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500/50"
                   />
                 </div>
               </div>
@@ -307,7 +295,7 @@ const SupportPage = () => {
 
         {/* Right Column: Support Form & AI Chatbot Trigger (4/12) */}
         <div className="col-span-12 lg:col-span-4 space-y-8">
-          
+
           {/* Submit Support Ticket Form */}
           <div className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100/50 space-y-6">
             <div>
@@ -318,21 +306,19 @@ const SupportPage = () => {
               <p className="text-xs text-slate-400 font-bold">Gửi khiếu nại, góp ý hoặc báo cáo sự cố trực tiếp tới Admin.</p>
             </div>
 
-            {ticketSuccess ? (
-              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-center space-y-3 animate-in zoom-in duration-300">
-                <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto" />
-                <h4 className="text-sm font-black text-emerald-800">Gửi yêu cầu thành công!</h4>
-                <p className="text-xs text-emerald-600 font-bold leading-relaxed">Mã ticket của bạn là #NEX-{Math.floor(1000 + Math.random() * 9000)}. Chúng tôi sẽ phản hồi sớm nhất qua email của bạn.</p>
+            {!supportTicketCreationSupported && (
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 font-bold leading-relaxed">
+                Chức năng tạo support ticket chưa có owner endpoint trong API contract hiện tại. Biểu mẫu được giữ để tham chiếu nhưng chưa thể gửi.
               </div>
-            ) : (
+            )}
               <form onSubmit={handleTicketSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tiêu đề yêu cầu</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={ticketSubject}
                     onChange={(e) => setTicketSubject(e.target.value)}
-                    placeholder="Tóm tắt ngắn gọn vấn đề cần hỗ trợ..." 
+                    placeholder="Tóm tắt ngắn gọn vấn đề cần hỗ trợ..."
                     className="w-full bg-slate-50 border border-slate-100 rounded-xl p-3.5 text-slate-700 font-bold text-xs outline-none focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-500/20 transition-all placeholder:text-slate-400"
                     required
                   />
@@ -340,7 +326,7 @@ const SupportPage = () => {
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Danh mục sự cố</label>
-                  <select 
+                  <select
                     value={ticketCategory}
                     onChange={(e) => setTicketCategory(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-100 rounded-xl p-3.5 text-slate-700 font-bold text-xs outline-none focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-500/20 transition-all"
@@ -357,23 +343,23 @@ const SupportPage = () => {
 
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Mô tả chi tiết</label>
-                  <textarea 
+                  <textarea
                     rows={4}
                     value={ticketMessage}
                     onChange={(e) => setTicketMessage(e.target.value)}
-                    placeholder="Mô tả cụ thể sự cố bạn gặp phải để chúng tôi hỗ trợ nhanh nhất..." 
+                    placeholder="Mô tả cụ thể sự cố bạn gặp phải để chúng tôi hỗ trợ nhanh nhất..."
                     className="w-full bg-slate-50 border border-slate-100 rounded-xl p-3.5 text-slate-700 font-medium text-xs outline-none focus:ring-4 focus:ring-indigo-500/5 focus:bg-white focus:border-indigo-500/20 transition-all placeholder:text-slate-400"
                     required
                   />
                 </div>
 
-                <button 
+                <button
                   type="submit"
-                  disabled={submittingTicket}
+                  disabled={!supportTicketCreationSupported}
                   className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl font-black text-[11px] uppercase tracking-wider shadow-lg shadow-indigo-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
                 >
-                  {submittingTicket ? (
-                    <>Đang gửi yêu cầu...</>
+                  {!supportTicketCreationSupported ? (
+                    <>Chưa được hỗ trợ</>
                   ) : (
                     <>
                       <span>Gửi yêu cầu ngay</span>
@@ -382,7 +368,6 @@ const SupportPage = () => {
                   )}
                 </button>
               </form>
-            )}
           </div>
 
           {/* Contact Channels */}
@@ -402,7 +387,7 @@ const SupportPage = () => {
       </div>
 
       {/* Floating Action Button (FAB) for NexusAI Chatbot assistant */}
-      <button 
+      <button
         onClick={() => setChatOpen(!chatOpen)}
         className="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-tr from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 animate-pulse"
       >
@@ -429,13 +414,13 @@ const SupportPage = () => {
           {/* Messages Body */}
           <div className="flex-1 p-6 overflow-y-auto no-scrollbar space-y-4 bg-slate-50/50">
             {chatMessages.map((msg, index) => (
-              <div 
+              <div
                 key={index}
                 className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-300`}
               >
                 <div className={`max-w-[75%] px-4.5 py-3 rounded-2xl text-xs font-semibold leading-relaxed shadow-sm ${
-                  msg.sender === 'user' 
-                  ? 'bg-indigo-600 text-white rounded-tr-none' 
+                  msg.sender === 'user'
+                  ? 'bg-indigo-600 text-white rounded-tr-none'
                   : 'bg-white text-slate-600 border border-slate-100 rounded-tl-none'
                 }`}>
                   {msg.text}
@@ -450,14 +435,14 @@ const SupportPage = () => {
             <div className="flex flex-col gap-1.5 max-h-[120px] overflow-y-auto no-scrollbar">
               {role === 'ORGANIZER' && (
                 <>
-                  <button 
+                  <button
                     onClick={() => handleBotQuestionClick("Làm thế nào rút tiền doanh số?", "Để rút tiền, bạn vào mục 'Tài chính', nhấp vào sự kiện đã kết thúc và chọn 'Yêu cầu rút tiền'. Admin sẽ duyệt chuyển khoản trong 24h làm việc.")}
                     className="text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 p-2.5 rounded-xl text-left transition-all flex items-center justify-between"
                   >
                     <span>Làm thế nào rút tiền doanh số?</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleBotQuestionClick("Phí hoa hồng nền tảng bao nhiêu?", "Mức hoa hồng nền tảng mặc định là 15% tổng doanh số bán vé, được trừ tự động trước khi quyết toán.")}
                     className="text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 p-2.5 rounded-xl text-left transition-all flex items-center justify-between"
                   >
@@ -468,14 +453,14 @@ const SupportPage = () => {
               )}
               {role === 'ATTENDEE' && (
                 <>
-                  <button 
+                  <button
                     onClick={() => handleBotQuestionClick("Tôi không nhận được mã QR?", "Mã QR được đính kèm ở email xác nhận, và luôn hiển thị tại mục 'Vé & Đăng ký' trong tài khoản cá nhân của bạn.")}
                     className="text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 p-2.5 rounded-xl text-left transition-all flex items-center justify-between"
                   >
                     <span>Tôi không nhận được mã QR?</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleBotQuestionClick("Chính sách đổi trả/hủy vé?", "Nếu sự kiện bị hủy từ phía Nhà tổ chức, bạn được hoàn tiền 100%. Nếu muốn tự hủy vé, vui lòng xem điều khoản riêng từng sự kiện.")}
                     className="text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 p-2.5 rounded-xl text-left transition-all flex items-center justify-between"
                   >
@@ -486,14 +471,14 @@ const SupportPage = () => {
               )}
               {role === 'ADMIN' && (
                 <>
-                  <button 
+                  <button
                     onClick={() => handleBotQuestionClick("Duyệt nhanh sự kiện?", "Vào trang quản lý Sự kiện, lọc danh sách 'Chờ phê duyệt' và bấm chọn Approve để xuất bản sự kiện ra trang chủ.")}
                     className="text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 p-2.5 rounded-xl text-left transition-all flex items-center justify-between"
                   >
                     <span>Duyệt nhanh sự kiện?</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleBotQuestionClick("Khôi phục DB từ file dump SQL?", "Truy cập Settings -> Sao lưu & Khôi phục. Sử dụng terminal của máy chủ hoặc Docker Exec để chạy câu lệnh psql import file dump.")}
                     className="text-[11px] font-bold text-indigo-600 bg-indigo-50/50 hover:bg-indigo-50 p-2.5 rounded-xl text-left transition-all flex items-center justify-between"
                   >

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import logo from '../../assets/logo.png';
 
 const languages = [
@@ -47,7 +47,7 @@ const LandingFooter = () => {
     <footer className="bg-white border-t border-slate-100 pt-20 pb-10 px-6 md:px-10 overflow-hidden relative" id="footer">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8 mb-20">
-          
+
           {/* Column 1: Brand */}
           <div className="lg:col-span-4 space-y-6">
             <div className="cursor-pointer" onClick={() => navigate('/')}>
@@ -58,9 +58,9 @@ const LandingFooter = () => {
             </p>
             <div className="flex items-center gap-4">
               {socials.map((social) => (
-                <a 
-                  key={social.platform} 
-                  href="#" 
+                <a
+                  key={social.platform}
+                  href="#"
                   className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center hover:border-[#e4322a] hover:bg-white transition-all duration-300 group shadow-sm"
                 >
                   <img src={social.icon} alt={social.platform} className="w-4 h-4 opacity-50 grayscale group-hover:opacity-100 group-hover:grayscale-0 transition-opacity" />
@@ -100,8 +100,8 @@ const LandingFooter = () => {
               Đăng ký để nhận tin tức mới nhất về các xu hướng tổ chức sự kiện và bản cập nhật sản phẩm.
             </p>
             <div className="flex gap-2">
-              <input 
-                type="email" 
+              <input
+                type="email"
                 placeholder="Email của bạn"
                 className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-[14px] outline-none focus:border-[#e4322a] focus:bg-white transition-all"
               />
@@ -120,35 +120,35 @@ const LandingFooter = () => {
               <a key={legal} href="#" className="text-slate-500 hover:text-[#e4322a] text-[12px] font-medium transition-colors">{legal}</a>
             ))}
           </div>
-          
+
           <div className="flex items-center gap-6 relative">
             <div className="flex items-center gap-3">
               <span className="text-slate-900 text-[12px] font-headline font-black uppercase tracking-[0.1em]">Ngôn ngữ:</span>
-              <div 
+              <div
                 className="flex items-center gap-3 px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-[13px] font-bold text-slate-700 cursor-pointer hover:border-[#e4322a] hover:text-[#e4322a] transition-all duration-300 shadow-sm group min-w-[160px] justify-between"
                 onClick={() => setIsLangOpen(!isLangOpen)}
               >
                 <div className="flex items-center gap-3">
-                  <img 
-                    src={selectedLang.flag} 
-                    alt={selectedLang.label} 
+                  <img
+                    src={selectedLang.flag}
+                    alt={selectedLang.label}
                     className="w-5 h-auto rounded-sm object-contain shadow-sm"
                   />
                   <span className="font-headline">{selectedLang.label}</span>
                 </div>
-                <motion.span 
+                <Motion.span
                   animate={{ rotate: isLangOpen ? 180 : 0 }}
                   className="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-[#e4322a]"
                 >
                   expand_more
-                </motion.span>
+                </Motion.span>
               </div>
             </div>
 
             {/* Dropdown Menu */}
             <AnimatePresence>
               {isLangOpen && (
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -162,8 +162,8 @@ const LandingFooter = () => {
                         setIsLangOpen(false);
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                        selectedLang.code === lang.code 
-                          ? 'bg-red-50 text-[#e4322a]' 
+                        selectedLang.code === lang.code
+                          ? 'bg-red-50 text-[#e4322a]'
                           : 'hover:bg-slate-50 text-slate-600'
                       }`}
                     >
@@ -174,13 +174,13 @@ const LandingFooter = () => {
                       )}
                     </button>
                   ))}
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
           </div>
         </div>
       </div>
-      
+
       {/* Decorative accent */}
       <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
     </footer>

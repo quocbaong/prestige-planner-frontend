@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const testimonials = [
   {
@@ -59,7 +59,7 @@ const TestimonialsSection = () => {
   return (
     <section className="py-20 bg-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 md:px-10 mb-8 text-center">
-        <motion.div
+        <Motion.div
            initial={{ opacity: 0, y: 20 }}
            whileInView={{ opacity: 1, y: 0 }}
            viewport={{ once: true }}
@@ -71,18 +71,18 @@ const TestimonialsSection = () => {
           <p className="text-lg text-slate-500 font-body">
             Đồng hành cùng hàng ngàn sự kiện thành công mỗi năm
           </p>
-        </motion.div>
+        </Motion.div>
       </div>
 
       {/* Marquee Container */}
       <div className="flex relative overflow-hidden py-10">
-        <motion.div 
+        <Motion.div
           className="flex gap-6 whitespace-nowrap"
           animate={{ x: ["0%", "-50%"] }}
-          transition={{ 
-            repeat: Infinity, 
-            duration: 40, 
-            ease: "linear" 
+          transition={{
+            repeat: Infinity,
+            duration: 40,
+            ease: "linear"
           }}
           whileHover={{ animationPlayState: "paused" }}
         >
@@ -98,7 +98,7 @@ const TestimonialsSection = () => {
                     <span key={j} className="material-symbols-outlined fill-current text-[16px]">star</span>
                   ))}
                 </div>
-                
+
                 {/* Quote */}
                 <p className="text-base text-slate-600 font-body font-medium leading-relaxed italic">
                   "{item.content}"
@@ -107,9 +107,9 @@ const TestimonialsSection = () => {
 
               {/* Author Info */}
               <div className="mt-4 flex items-center gap-3 border-t border-slate-50 pt-4">
-                <img 
-                  src={item.avatar} 
-                  alt={item.name} 
+                <img
+                  src={item.avatar}
+                  alt={item.name}
                   className="w-10 h-10 rounded-full border-2 border-indigo-50 shadow-sm"
                 />
                 <div>
@@ -119,7 +119,7 @@ const TestimonialsSection = () => {
               </div>
             </div>
           ))}
-        </motion.div>
+        </Motion.div>
       </div>
     </section>
   );

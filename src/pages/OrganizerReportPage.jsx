@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { motion as Motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const tabs = [
   { id: 'analytics', label: 'Phân tích Chuyên sâu', icon: 'analytics', path: '/organizer/reports/analytics' },
@@ -9,14 +9,11 @@ const tabs = [
 
 const OrganizerReportPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const activeTab = tabs.find(t => location.pathname.startsWith(t.path))?.id || 'analytics';
 
   return (
     <div className="p-4 lg:p-6 max-w-[1600px] mx-auto bg-[#f8fafc] min-h-screen">
       {/* ── Report Page Header ── */}
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
@@ -27,14 +24,14 @@ const OrganizerReportPage = () => {
         <p className="text-sm text-slate-500 font-medium">
           Quản lý dữ liệu, xuất báo cáo và theo dõi hiệu suất sự kiện của bạn.
         </p>
-      </motion.div>
+      </Motion.div>
 
 
 
       {/* ── Tab Hint Cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tabs.map((tab, i) => (
-          <motion.div
+          <Motion.div
             key={tab.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -60,12 +57,12 @@ const OrganizerReportPage = () => {
               Đi đến trang
               <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
             </button>
-          </motion.div>
+          </Motion.div>
         ))}
       </div>
 
       {/* ── Quick Stats Bar ── */}
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.35 }}
@@ -90,7 +87,7 @@ const OrganizerReportPage = () => {
             </div>
           ))}
         </div>
-      </motion.div>
+      </Motion.div>
     </div>
   );
 };

@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Eye, 
-  UserX, 
-  UserCheck, 
-  Mail, 
-  Download, 
-  MapPin, 
-  Calendar, 
-  DollarSign, 
+import { motion as Motion, AnimatePresence } from 'framer-motion';
+import {
+  Search,
+  Filter,
+  MoreVertical,
+  Eye,
+  UserX,
+  UserCheck,
+  Mail,
+  Download,
+  MapPin,
+  Calendar,
+  DollarSign,
   Ticket,
   Users2,
   ChevronLeft,
@@ -25,10 +25,10 @@ import StatCard from '../components/ui/StatCard';
 const GuestsPage = () => {
   // Premium Mock Attendees / Guests Database for Admin Panel
   const [guests, setGuests] = useState([
-    { 
-      id: 1, 
-      name: 'Lê Minh Anh', 
-      email: 'minhanh.le@email.com', 
+    {
+      id: 1,
+      name: 'Lê Minh Anh',
+      email: 'minhanh.le@email.com',
       phone: '0912 345 678',
       joinedDate: '12/01/2024',
       totalSpent: '12,500,000đ',
@@ -37,12 +37,12 @@ const GuestsPage = () => {
       preferredCategory: 'Công nghệ',
       recentEvent: 'Vietnam Tech Summit 2024',
       ticketType: 'VIP',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRH6VK7Zu4rCm5nTo3CMXKlUWaPqlN5PKWQ6QLxMCzoPocFkFRu22-WAI3S5CHf26KzxM0Qh0P_2O3ckeDNJKd4OTcg-i16AyQ05N0oXMcIVf37Pkdj-ynRTSuJ0_k458AZOtTqN-artRQ39q8PWoA4cK_jyJWT_8jjNIhP7bsf3muaKvc-0VfQoSG_D2IwHZBVIgSoDV81-djG5K2xGVjh-6cOanOlUlQsl5TzPs4vy2PuE2esHKl-T4M6MLirCRN8o0ugoqF0HdW' 
+      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCRH6VK7Zu4rCm5nTo3CMXKlUWaPqlN5PKWQ6QLxMCzoPocFkFRu22-WAI3S5CHf26KzxM0Qh0P_2O3ckeDNJKd4OTcg-i16AyQ05N0oXMcIVf37Pkdj-ynRTSuJ0_k458AZOtTqN-artRQ39q8PWoA4cK_jyJWT_8jjNIhP7bsf3muaKvc-0VfQoSG_D2IwHZBVIgSoDV81-djG5K2xGVjh-6cOanOlUlQsl5TzPs4vy2PuE2esHKl-T4M6MLirCRN8o0ugoqF0HdW'
     },
-    { 
-      id: 2, 
-      name: 'Nguyễn Thành Trung', 
-      email: 'trung.nt@workmail.vn', 
+    {
+      id: 2,
+      name: 'Nguyễn Thành Trung',
+      email: 'trung.nt@workmail.vn',
       phone: '0988 765 432',
       joinedDate: '28/02/2024',
       totalSpent: '4,200,000đ',
@@ -51,12 +51,12 @@ const GuestsPage = () => {
       preferredCategory: 'Khoa học',
       recentEvent: 'Hội thảo AI & Robotics',
       ticketType: 'Thường',
-      avatar: null 
+      avatar: null
     },
-    { 
-      id: 3, 
-      name: 'Trần Hoàng Long', 
-      email: 'long.th@creative-agency.com', 
+    {
+      id: 3,
+      name: 'Trần Hoàng Long',
+      email: 'long.th@creative-agency.com',
       phone: '0909 112 233',
       joinedDate: '05/03/2024',
       totalSpent: '18,900,000đ',
@@ -65,12 +65,12 @@ const GuestsPage = () => {
       preferredCategory: 'Nghệ thuật',
       recentEvent: 'Gala Dinner: Night of Stars',
       ticketType: 'VIP',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvprpCeJzOAnx-LoHVMcc-pUpA5fHzkPvEIoCe3m691NNvr3DJhdiW7liOTMgbJ6yypaTKNqmxNrgRH0fu2luocDxDOyPjQA4JsKP0_Us32UveDuwZ-TMNulMoqZj6kbQG4YOLvIL0K7qWHeYK_hcnpVFMTQvbYKRxm_fGzsKRz_Tv4iTJaP6R50idLqxlGx2q0RvoB4M5BVwjGx2bpzwOyzLQF8rnoJyQECw_Bv-s2vQTOw8wOCYvgUFcH7YStQbOOrPDC5Gh76U2' 
+      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAvprpCeJzOAnx-LoHVMcc-pUpA5fHzkPvEIoCe3m691NNvr3DJhdiW7liOTMgbJ6yypaTKNqmxNrgRH0fu2luocDxDOyPjQA4JsKP0_Us32UveDuwZ-TMNulMoqZj6kbQG4YOLvIL0K7qWHeYK_hcnpVFMTQvbYKRxm_fGzsKRz_Tv4iTJaP6R50idLqxlGx2q0RvoB4M5BVwjGx2bpzwOyzLQF8rnoJyQECw_Bv-s2vQTOw8wOCYvgUFcH7YStQbOOrPDC5Gh76U2'
     },
-    { 
-      id: 4, 
-      name: 'Phạm Thúy Hằng', 
-      email: 'hang.pt@marketinghub.vn', 
+    {
+      id: 4,
+      name: 'Phạm Thúy Hằng',
+      email: 'hang.pt@marketinghub.vn',
       phone: '0933 445 566',
       joinedDate: '19/03/2024',
       totalSpent: '3,100,000đ',
@@ -79,12 +79,12 @@ const GuestsPage = () => {
       preferredCategory: 'Kinh doanh',
       recentEvent: 'Vietnam Tech Summit 2024',
       ticketType: 'Thường',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAsFLHYlqHxoVmim5G01IOaD61afrRb76l13V1oDS8WxSfQai0a9twFDb0Di8all8_3XATB9CJJmDt9FrvMrH0bzAXtESdi81hsk2uEXVNzDeX2CVOCvJubWOCbYCgb6ZDEroawuuPvzZBjkDKMXxN5LDgWX_SJxbsMSCeYzb2PDOgFsSoyzfeHJzP4kaX0rKQxj_vpzLKfXY5qOcKGZLWQv-PulDDHwzML8WbS-orT1ESwsuSb2i8uh3EMMbzOH5LRkOZGVcOcTdbZ' 
+      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAsFLHYlqHxoVmim5G01IOaD61afrRb76l13V1oDS8WxSfQai0a9twFDb0Di8all8_3XATB9CJJmDt9FrvMrH0bzAXtESdi81hsk2uEXVNzDeX2CVOCvJubWOCbYCgb6ZDEroawuuPvzZBjkDKMXxN5LDgWX_SJxbsMSCeYzb2PDOgFsSoyzfeHJzP4kaX0rKQxj_vpzLKfXY5qOcKGZLWQv-PulDDHwzML8WbS-orT1ESwsuSb2i8uh3EMMbzOH5LRkOZGVcOcTdbZ'
     },
-    { 
-      id: 5, 
-      name: 'Hoàng Văn Nam', 
-      email: 'nam.hv@outlook.com', 
+    {
+      id: 5,
+      name: 'Hoàng Văn Nam',
+      email: 'nam.hv@outlook.com',
       phone: '0911 223 344',
       joinedDate: '24/03/2024',
       totalSpent: '8,500,000đ',
@@ -93,12 +93,12 @@ const GuestsPage = () => {
       preferredCategory: 'Âm nhạc',
       recentEvent: 'Gala Dinner: Night of Stars',
       ticketType: 'Thường',
-      avatar: null 
+      avatar: null
     },
-    { 
-      id: 6, 
-      name: 'Bùi Thị Ngọc', 
-      email: 'ngoc.bt@fpt.com.vn', 
+    {
+      id: 6,
+      name: 'Bùi Thị Ngọc',
+      email: 'ngoc.bt@fpt.com.vn',
       phone: '0944 556 677',
       joinedDate: '01/04/2024',
       totalSpent: '15,600,000đ',
@@ -107,12 +107,12 @@ const GuestsPage = () => {
       preferredCategory: 'Công nghệ',
       recentEvent: 'Hội thảo AI & Robotics',
       ticketType: 'VIP',
-      avatar: null 
+      avatar: null
     },
-    { 
-      id: 7, 
-      name: 'Vũ Minh Đức', 
-      email: 'duc.vm@gmail.com', 
+    {
+      id: 7,
+      name: 'Vũ Minh Đức',
+      email: 'duc.vm@gmail.com',
       phone: '0977 889 900',
       joinedDate: '15/04/2024',
       totalSpent: '2,500,000đ',
@@ -121,12 +121,12 @@ const GuestsPage = () => {
       preferredCategory: 'Thể thao',
       recentEvent: 'Vietnam Tech Summit 2024',
       ticketType: 'Thường',
-      avatar: null 
+      avatar: null
     },
-    { 
-      id: 8, 
-      name: 'Đỗ Kim Liên', 
-      email: 'lien.dk@vietcombank.com.vn', 
+    {
+      id: 8,
+      name: 'Đỗ Kim Liên',
+      email: 'lien.dk@vietcombank.com.vn',
       phone: '0922 334 455',
       joinedDate: '22/04/2024',
       totalSpent: '24,000,000đ',
@@ -135,12 +135,12 @@ const GuestsPage = () => {
       preferredCategory: 'Tài chính',
       recentEvent: 'Vietnam Tech Summit 2024',
       ticketType: 'VIP',
-      avatar: null 
+      avatar: null
     },
-    { 
-      id: 9, 
-      name: 'Trịnh Gia Bảo', 
-      email: 'bao.tg@vinfast.vn', 
+    {
+      id: 9,
+      name: 'Trịnh Gia Bảo',
+      email: 'bao.tg@vinfast.vn',
       phone: '0966 778 899',
       joinedDate: '05/05/2024',
       totalSpent: '5,800,000đ',
@@ -149,12 +149,12 @@ const GuestsPage = () => {
       preferredCategory: 'Công nghiệp',
       recentEvent: 'Hội thảo AI & Robotics',
       ticketType: 'Thường',
-      avatar: null 
+      avatar: null
     },
-    { 
-      id: 10, 
-      name: 'Lý Thanh Hà', 
-      email: 'ha.lt@shopee.vn', 
+    {
+      id: 10,
+      name: 'Lý Thanh Hà',
+      email: 'ha.lt@shopee.vn',
       phone: '0955 667 788',
       joinedDate: '10/05/2024',
       totalSpent: '9,200,000đ',
@@ -163,7 +163,7 @@ const GuestsPage = () => {
       preferredCategory: 'Thời trang',
       recentEvent: 'Gala Dinner: Night of Stars',
       ticketType: 'VIP',
-      avatar: null 
+      avatar: null
     }
   ]);
 
@@ -185,7 +185,7 @@ const GuestsPage = () => {
   const [messageTitle, setMessageTitle] = useState('');
   const [messageBody, setMessageBody] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Toast State
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false });
 
@@ -195,41 +195,41 @@ const GuestsPage = () => {
   };
 
   const stats = [
-    { 
-      title: 'Tổng người dùng', 
-      value: '2,540', 
-      subtext: 'so với tháng trước', 
+    {
+      title: 'Tổng người dùng',
+      value: '2,540',
+      subtext: 'so với tháng trước',
       trend: 'up',
       trendValue: '+15%',
-      icon: Users2, 
-      iconBg: 'bg-indigo-50', 
-      iconColor: 'text-indigo-500' 
+      icon: Users2,
+      iconBg: 'bg-indigo-50',
+      iconColor: 'text-indigo-500'
     },
-    { 
-      title: 'Khách hàng VIP', 
-      value: '380', 
-      subtext: '12% hệ thống', 
-      icon: Ticket, 
-      iconBg: 'bg-amber-50', 
-      iconColor: 'text-amber-500' 
+    {
+      title: 'Khách hàng VIP',
+      value: '380',
+      subtext: '12% hệ thống',
+      icon: Ticket,
+      iconBg: 'bg-amber-50',
+      iconColor: 'text-amber-500'
     },
-    { 
-      title: 'Chi tiêu nhiều nhất', 
-      value: '24,000,000đ', 
-      subtext: 'Đỗ Kim Liên', 
-      icon: DollarSign, 
-      iconBg: 'bg-emerald-50', 
-      iconColor: 'text-emerald-500' 
+    {
+      title: 'Chi tiêu nhiều nhất',
+      value: '24,000,000đ',
+      subtext: 'Đỗ Kim Liên',
+      icon: DollarSign,
+      iconBg: 'bg-emerald-50',
+      iconColor: 'text-emerald-500'
     },
-    { 
-      title: 'Đang bị khóa', 
-      value: '14 tài khoản', 
-      subtext: 'giảm so với tháng trước', 
+    {
+      title: 'Đang bị khóa',
+      value: '14 tài khoản',
+      subtext: 'giảm so với tháng trước',
       trend: 'down',
       trendValue: '-2%',
-      icon: UserX, 
-      iconBg: 'bg-rose-50', 
-      iconColor: 'text-rose-500' 
+      icon: UserX,
+      iconBg: 'bg-rose-50',
+      iconColor: 'text-rose-500'
     },
   ];
 
@@ -246,11 +246,11 @@ const GuestsPage = () => {
   // Filter & Search Logic
   const filteredGuests = guests
     .filter(guest => {
-      const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            guest.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            guest.phone.includes(searchTerm);
-      
-      const matchesCategory = 
+
+      const matchesCategory =
         activeFilter === 'Tất cả' ||
         (activeFilter === 'VIP' && guest.ticketType === 'VIP') ||
         (activeFilter === 'Thường' && guest.ticketType === 'Thường') ||
@@ -283,7 +283,7 @@ const GuestsPage = () => {
       const headers = ['ID', 'Họ tên', 'Email', 'Số điện thoại', 'Ngày tham gia', 'Tổng chi tiêu', 'Số vé mua', 'Trạng thái', 'Danh mục ưu thích'];
       const csvContent = [
         headers.join(','),
-        ...filteredGuests.map(g => 
+        ...filteredGuests.map(g =>
           [g.id, g.name, g.email, g.phone, g.joinedDate, g.totalSpent, g.ticketsCount, g.status, g.preferredCategory].join(',')
         )
       ].join('\n');
@@ -306,7 +306,7 @@ const GuestsPage = () => {
     setGuests(prev => prev.map(g => g.id === guestToLock.id ? { ...g, status: updatedStatus } : g));
     setIsLockModalOpen(false);
     showToast(
-      updatedStatus === 'Đã khóa' 
+      updatedStatus === 'Đã khóa'
         ? `Đã khóa thành công tài khoản của ${guestToLock.name}!`
         : `Đã mở khóa thành công tài khoản của ${guestToLock.name}!`,
       updatedStatus === 'Đã khóa' ? 'error' : 'success'
@@ -316,7 +316,7 @@ const GuestsPage = () => {
   const handleSendMessage = (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate Notification API push
     setTimeout(() => {
       setIsSubmitting(false);
@@ -336,7 +336,7 @@ const GuestsPage = () => {
           <p className="text-slate-500 max-w-2xl font-medium">Giám sát, phân tích chi tiết, cập nhật trạng thái và hỗ trợ tất cả người tham dự sự kiện trên toàn bộ nền tảng.</p>
         </div>
         <div>
-          <button 
+          <button
             onClick={handleExport}
             className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-bold border-none shadow-lg shadow-primary/20 hover:bg-primary-hover hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-95 duration-200 cursor-pointer"
           >
@@ -349,7 +349,7 @@ const GuestsPage = () => {
       {/* Grid Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
-          <motion.div
+          <Motion.div
             key={index}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -365,7 +365,7 @@ const GuestsPage = () => {
               iconBg={stat.iconBg}
               iconColor={stat.iconColor}
             />
-          </motion.div>
+          </Motion.div>
         ))}
       </div>
 
@@ -374,18 +374,18 @@ const GuestsPage = () => {
         <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
-            <input 
+            <input
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 focus:ring-4 focus:ring-primary/10 focus:border-primary placeholder:text-slate-400 text-sm font-medium outline-none transition-all" 
-              placeholder="Tìm theo họ tên khách mời, email hoặc số điện thoại..." 
+              className="w-full bg-white border border-slate-200 rounded-2xl py-3 pl-12 pr-4 focus:ring-4 focus:ring-primary/10 focus:border-primary placeholder:text-slate-400 text-sm font-medium outline-none transition-all"
+              placeholder="Tìm theo họ tên khách mời, email hoặc số điện thoại..."
               type="text"
             />
           </div>
-          
+
           <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0 no-scrollbar">
             {filters.map(filter => (
               <button
@@ -395,8 +395,8 @@ const GuestsPage = () => {
                   setCurrentPage(1);
                 }}
                 className={`px-6 py-3 rounded-2xl text-sm font-bold whitespace-nowrap transition-all duration-200
-                  ${activeFilter === filter 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' 
+                  ${activeFilter === filter
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'}`}
               >
                 {filter}
@@ -405,7 +405,7 @@ const GuestsPage = () => {
           </div>
 
           <div className="relative">
-            <button 
+            <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className={`p-3 rounded-2xl transition-all shadow-sm flex items-center justify-center border
                 ${showAdvancedFilters ? 'bg-primary text-white border-primary' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}
@@ -416,7 +416,7 @@ const GuestsPage = () => {
             {/* Advanced Dropdown */}
             <AnimatePresence>
               {showAdvancedFilters && (
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -425,7 +425,7 @@ const GuestsPage = () => {
                   <div className="space-y-5">
                     <div>
                       <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Danh mục ưa thích</label>
-                      <select 
+                      <select
                         value={selectedCategory}
                         onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 px-4 text-sm font-bold text-slate-700 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all cursor-pointer"
@@ -454,7 +454,7 @@ const GuestsPage = () => {
                       </div>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedCategory('Tất cả danh mục');
                         setSortBy('newest');
@@ -467,7 +467,7 @@ const GuestsPage = () => {
                       Đặt lại cấu hình lọc
                     </button>
                   </div>
-                </motion.div>
+                </Motion.div>
               )}
             </AnimatePresence>
           </div>
@@ -492,8 +492,8 @@ const GuestsPage = () => {
             <tbody className="divide-y divide-slate-50">
               {paginatedGuests.length > 0 ? (
                 paginatedGuests.map((guest) => (
-                  <tr 
-                    key={guest.id} 
+                  <tr
+                    key={guest.id}
                     className="hover:bg-slate-50/30 transition-colors group h-[81px]"
                   >
                     <td className="px-6 py-4">
@@ -535,7 +535,7 @@ const GuestsPage = () => {
                     </td>
                     <td className="px-8 py-4 text-center relative">
                       <div className="flex justify-center">
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setOpenMenuId(openMenuId === guest.id ? null : guest.id);
@@ -549,17 +549,17 @@ const GuestsPage = () => {
                       <AnimatePresence>
                         {openMenuId === guest.id && (
                           <>
-                            <div 
-                              className="fixed inset-0 z-[10]" 
+                            <div
+                              className="fixed inset-0 z-[10]"
                               onClick={() => setOpenMenuId(null)}
                             />
-                            <motion.div
+                            <Motion.div
                               initial={{ opacity: 0, scale: 0.95, y: 10 }}
                               animate={{ opacity: 1, scale: 1, y: 0 }}
                               exit={{ opacity: 0, scale: 0.95, y: 10 }}
                               className="absolute right-8 top-[70%] mt-2 w-56 bg-white rounded-3xl shadow-2xl border border-slate-100 py-2.5 z-[20] overflow-hidden text-left"
                             >
-                              <button 
+                              <button
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                                 onClick={() => {
                                   setOpenMenuId(null);
@@ -570,7 +570,7 @@ const GuestsPage = () => {
                                 <Eye className="w-4 h-4 text-slate-400" />
                                 Xem chi tiết hồ sơ
                               </button>
-                              <button 
+                              <button
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
                                 onClick={() => {
                                   setOpenMenuId(null);
@@ -582,7 +582,7 @@ const GuestsPage = () => {
                                 Gửi thông báo hệ thống
                               </button>
                               <div className="h-px bg-slate-100 my-1.5 mx-2" />
-                              <button 
+                              <button
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold transition-colors
                                   ${guest.status === 'Hoạt động' ? 'text-rose-600 hover:bg-rose-50' : 'text-emerald-600 hover:bg-emerald-50'}`}
                                 onClick={() => {
@@ -603,7 +603,7 @@ const GuestsPage = () => {
                                   </>
                                 )}
                               </button>
-                            </motion.div>
+                            </Motion.div>
                           </>
                         )}
                       </AnimatePresence>
@@ -628,28 +628,28 @@ const GuestsPage = () => {
               Hiển thị {startItem} - {endItem} trên {filteredGuests.length} khách mời
             </p>
             <div className="flex items-center gap-2">
-              <button 
+              <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-primary disabled:opacity-50 transition-all shadow-sm"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              
+
               {[...Array(totalPages)].map((_, i) => (
-                <button 
+                <button
                   key={i + 1}
                   onClick={() => setCurrentPage(i + 1)}
                   className={`w-9 h-9 rounded-xl text-sm font-black flex items-center justify-center transition-all
-                    ${currentPage === i + 1 
-                      ? 'bg-primary text-white shadow-md shadow-primary/20 scale-[1.05]' 
+                    ${currentPage === i + 1
+                      ? 'bg-primary text-white shadow-md shadow-primary/20 scale-[1.05]'
                       : 'hover:bg-slate-100 text-slate-600 font-medium'}`}
                 >
                   {i + 1}
                 </button>
               ))}
-              
-              <button 
+
+              <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="p-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-primary disabled:opacity-50 transition-all shadow-sm"
@@ -664,7 +664,7 @@ const GuestsPage = () => {
       {/* ── Toast Notification ── */}
       <AnimatePresence>
         {toast.visible && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20, x: 20 }}
             animate={{ opacity: 1, y: 0, x: 0 }}
             exit={{ opacity: 0, scale: 0.8, x: 20 }}
@@ -674,7 +674,7 @@ const GuestsPage = () => {
               <span className="text-white text-xs font-black">✓</span>
             </div>
             <p className="text-sm font-black tracking-tight">{toast.message}</p>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
@@ -682,11 +682,11 @@ const GuestsPage = () => {
       <AnimatePresence>
         {isDetailModalOpen && selectedGuest && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDetailModalOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDetailModalOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
+            <Motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
@@ -730,7 +730,7 @@ const GuestsPage = () => {
 
               <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-4">
                 <button onClick={() => setIsDetailModalOpen(false)} className="px-8 py-4 bg-white text-slate-600 font-black text-sm rounded-2xl hover:bg-slate-100 transition-all border border-slate-200 shadow-sm">Đóng cửa sổ</button>
-                <button 
+                <button
                   onClick={() => {
                     setIsDetailModalOpen(false);
                     setIsMessageModalOpen(true);
@@ -741,7 +741,7 @@ const GuestsPage = () => {
                   Gửi thông báo
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -750,11 +750,11 @@ const GuestsPage = () => {
       <AnimatePresence>
         {isMessageModalOpen && selectedGuest && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMessageModalOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMessageModalOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-md" />
+            <Motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
             >
               <form onSubmit={handleSendMessage}>
@@ -774,40 +774,40 @@ const GuestsPage = () => {
                 <div className="p-8 space-y-6">
                   <div className="space-y-2">
                     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Tiêu đề thông báo</label>
-                    <input 
-                      required 
-                      type="text" 
-                      value={messageTitle} 
-                      onChange={e => setMessageTitle(e.target.value)} 
-                      placeholder="Ví dụ: Cảnh báo bảo mật / Ưu đãi đặc biệt..." 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none" 
+                    <input
+                      required
+                      type="text"
+                      value={messageTitle}
+                      onChange={e => setMessageTitle(e.target.value)}
+                      placeholder="Ví dụ: Cảnh báo bảo mật / Ưu đãi đặc biệt..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Nội dung chi tiết</label>
-                    <textarea 
-                      required 
-                      rows={5} 
-                      value={messageBody} 
-                      onChange={e => setMessageBody(e.target.value)} 
-                      placeholder="Nhập nội dung thông báo gửi trực tiếp vào hòm thư hệ thống của người dùng..." 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none resize-none" 
+                    <textarea
+                      required
+                      rows={5}
+                      value={messageBody}
+                      onChange={e => setMessageBody(e.target.value)}
+                      placeholder="Nhập nội dung thông báo gửi trực tiếp vào hòm thư hệ thống của người dùng..."
+                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 px-5 text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-600 transition-all outline-none resize-none"
                     />
                   </div>
                 </div>
 
                 <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
                   <button type="button" onClick={() => setIsMessageModalOpen(false)} className="px-6 py-3 bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-100 transition-all rounded-xl">Hủy</button>
-                  <button 
-                    disabled={isSubmitting} 
-                    type="submit" 
+                  <button
+                    disabled={isSubmitting}
+                    type="submit"
                     className="px-8 py-3 bg-indigo-600 text-white font-black text-sm rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2"
                   >
                     {isSubmitting ? 'Đang gửi...' : 'Gửi thông báo ngay'}
                   </button>
                 </div>
               </form>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -816,39 +816,39 @@ const GuestsPage = () => {
       <AnimatePresence>
         {isLockModalOpen && guestToLock && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsLockModalOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9, y: 20 }} 
-              animate={{ opacity: 1, scale: 1, y: 0 }} 
-              exit={{ opacity: 0, scale: 0.9, y: 20 }} 
+            <Motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsLockModalOpen(false)} className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" />
+            <Motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl p-10 text-center"
             >
-              <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 
+              <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6
                 ${guestToLock.status === 'Hoạt động' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
                 <AlertTriangle className="w-10 h-10 animate-pulse" />
               </div>
-              
+
               <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-3">
                 {guestToLock.status === 'Hoạt động' ? 'Khóa tài khoản?' : 'Mở khóa tài khoản?'}
               </h2>
-              
+
               <p className="text-sm text-slate-500 font-bold leading-relaxed mb-8">
-                {guestToLock.status === 'Hoạt động' 
+                {guestToLock.status === 'Hoạt động'
                   ? `Bạn có chắc chắn muốn khóa tài khoản của ${guestToLock.name}? Người dùng này sẽ không thể đăng nhập hoặc mua vé sự kiện nữa.`
                   : `Bạn có chắc chắn muốn kích hoạt lại tài khoản của ${guestToLock.name}?`}
               </p>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <button onClick={() => setIsLockModalOpen(false)} className="py-4 bg-slate-100 text-slate-600 font-black text-sm rounded-2xl hover:bg-slate-200 transition-all">Hủy bỏ</button>
-                <button 
-                  onClick={handleToggleLockStatus} 
+                <button
+                  onClick={handleToggleLockStatus}
                   className={`py-4 text-white font-black text-sm rounded-2xl transition-all shadow-xl
                     ${guestToLock.status === 'Hoạt động' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-100' : 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-100'}`}
                 >
                   Xác nhận
                 </button>
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>

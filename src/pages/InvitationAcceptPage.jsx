@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { invitationService } from '../services/invitationService';
 
 const InvitationAcceptPage = () => {
@@ -30,7 +30,7 @@ const InvitationAcceptPage = () => {
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <motion.div
+      <Motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -117,7 +117,7 @@ const InvitationAcceptPage = () => {
             </button>
           </div>
         )}
-      </motion.div>
+      </Motion.div>
     </div>
   );
 };

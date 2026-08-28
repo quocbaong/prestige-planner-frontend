@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion as Motion, useMotionValue, useTransform, animate } from 'framer-motion';
 
 const StatItem = ({ value, label, icon, index, total }) => {
   // Parsing value to get numeric part
   const numericStr = value.replace(/,/g, '').match(/[0-9.]+/)[0];
   const numericValue = parseFloat(numericStr);
   const suffix = value.replace(/[0-9,.]/g, '');
-  
+
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => {
     if (value.includes('M')) {
@@ -24,7 +24,7 @@ const StatItem = ({ value, label, icon, index, total }) => {
       ease: [0.16, 1, 0.3, 1], // Custom slow-out quint ease
     });
     return animation.stop;
-  }, [numericValue, value]);
+  }, [count, index, numericValue, value]);
 
   return (
     <div className={`relative flex flex-col items-center ${index < total - 1 ? 'md:border-r border-slate-200' : ''} px-4 py-16 md:py-24`}>
@@ -33,7 +33,7 @@ const StatItem = ({ value, label, icon, index, total }) => {
         <span className="material-symbols-outlined text-[20px] font-light">{icon}</span>
       </div>
 
-      <motion.div 
+      <Motion.div
         initial={{ opacity: 0, y: 10 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
@@ -41,9 +41,9 @@ const StatItem = ({ value, label, icon, index, total }) => {
         className="text-4xl md:text-5xl font-headline font-black text-slate-900 mb-2 tracking-tight"
       >
         {rounded}
-      </motion.div>
-      
-      <motion.div 
+      </Motion.div>
+
+      <Motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 0.6 }}
         viewport={{ once: true }}
@@ -51,7 +51,7 @@ const StatItem = ({ value, label, icon, index, total }) => {
         className="text-[14px] font-body text-slate-800 lowercase"
       >
         {label}
-      </motion.div>
+      </Motion.div>
     </div>
   );
 };
@@ -72,16 +72,16 @@ const StatisticsSection = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 w-full">
           {stats.map((stat, i) => (
-            <StatItem 
-              key={i} 
-              {...stat} 
-              index={i} 
-              total={stats.length} 
+            <StatItem
+              key={i}
+              {...stat}
+              index={i}
+              total={stats.length}
             />
           ))}
         </div>
       </div>
-      
+
       {/* Bottom border to close the section cleanly */}
       <div className="absolute bottom-0 inset-x-0 h-[1px] bg-slate-100"></div>
     </section>

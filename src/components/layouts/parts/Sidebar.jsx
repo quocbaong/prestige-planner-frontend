@@ -15,9 +15,9 @@ import {
 } from 'lucide-react';
 
 import logo from '../../../assets/logo.png';
-import { useAuth } from '../../../stores/AuthContext';
+import { useAuth } from '../../../stores/useAuth';
 
-const SidebarItem = ({ icon: Icon, label, active = false, onClick }) => (
+const SidebarItem = ({ icon: Icon, label, active = false, onClick }) => (void Icon,
   <div
     onClick={onClick}
     className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-all duration-200 rounded-xl group ${active
@@ -53,7 +53,7 @@ const Sidebar = () => {
   return (
     <aside className="w-[var(--sidebar-width)] h-screen bg-white border-r border-border-color flex flex-col pt-4 pb-6">
       {/* Logo */}
-      <div 
+      <div
         onClick={() => navigate('/admin/dashboard')}
         className="px-6 mb-8 cursor-pointer hover:opacity-85 transition-opacity"
       >
@@ -76,7 +76,7 @@ const Sidebar = () => {
       {/* Bottom Section */}
       <div className="px-4 space-y-4">
         {/* Create Event Button */}
-        <button 
+        <button
           onClick={() => navigate('/admin/events/create')}
           className="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-primary/25 transition-all duration-300 transform hover:-translate-y-1"
         >
@@ -85,11 +85,11 @@ const Sidebar = () => {
         </button>
 
         <div className="pt-4 space-y-1 border-t border-border-color">
-          <SidebarItem 
-            icon={HelpCircle} 
-            label="Hỗ trợ" 
-            active={location.pathname === '/admin/help'} 
-            onClick={() => navigate('/admin/help')} 
+          <SidebarItem
+            icon={HelpCircle}
+            label="Hỗ trợ"
+            active={location.pathname === '/admin/help'}
+            onClick={() => navigate('/admin/help')}
           />
           <SidebarItem icon={LogOut} label="Đăng xuất" onClick={handleLogout} />
         </div>

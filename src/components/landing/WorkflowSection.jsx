@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 
 const steps = [
   {
@@ -28,10 +28,10 @@ const WorkflowSection = () => {
   return (
     <section className="py-18 bg-white relative overflow-hidden" id="solutions">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        
+
         {/* Header */}
         <div className="text-center mb-10">
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -43,26 +43,26 @@ const WorkflowSection = () => {
             <p className="text-lg text-slate-500 font-body">
               Triển khai sự kiện dễ dàng chỉ với 4 bước
             </p>
-          </motion.div>
+          </Motion.div>
         </div>
 
         {/* Timeline Container */}
         <div className="relative pt-12">
           {/* Horizontal Line Connecting Steps (Hidden on mobile) */}
           <div className="absolute top-[80px] left-[10%] right-[10%] h-[1px] bg-slate-200 hidden md:block"></div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-4 relative z-10">
             {steps.map((step, i) => (
-              <motion.div
+              <Motion.div
                 key={step.id}
                 initial={{ opacity: 0, scale: 0.8 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ 
-                  delay: i * 0.3, 
+                transition={{
+                  delay: i * 0.3,
                   duration: 0.6,
                   type: "spring",
-                  stiffness: 100 
+                  stiffness: 100
                 }}
                 className="flex flex-col items-center text-center group"
               >
@@ -82,7 +82,7 @@ const WorkflowSection = () => {
                     {step.desc}
                   </p>
                 </div>
-              </motion.div>
+              </Motion.div>
             ))}
           </div>
         </div>

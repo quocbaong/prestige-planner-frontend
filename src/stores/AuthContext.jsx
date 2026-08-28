@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../lib/axios';
-
-const AuthContext = createContext(null);
+import React, { useState, useEffect } from 'react';
+import { authService, clearSession } from '../services/authService';
+import { userService } from '../services/userService';
+import { AuthContext } from './authContext';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -18,13 +18,13 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
+      const response = await authService.login(email, password);
       const { accessToken, refreshToken, user: userData } = response.data;
-      
+
       localStorage.setItem('accessToken', accessToken);
       localStorage.setItem('refreshToken', refreshToken);
       localStorage.setItem('user', JSON.stringify(userData));
-      
+
       setUser(userData);
       return userData;
     } catch (error) {
@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (registerData) => {
     try {
-      await api.post('/auth/register', registerData);
+      await authService.register(registerData);
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -42,20 +42,18 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await api.post('/auth/logout');
+      await authService.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      clearSession();
       setUser(null);
     }
   };
 
   const updateUser = async (updatedData) => {
     try {
-      const response = await api.put('/users/profile', updatedData);
+      const response = await userService.updateProfile(updatedData);
       const updatedUser = response.data;
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
@@ -72,5 +70,3 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

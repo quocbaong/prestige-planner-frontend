@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { eventService } from '../services/eventService';
 
 const OrganizerTimelinePage = () => {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -67,7 +67,7 @@ const OrganizerTimelinePage = () => {
           <div className="space-y-8 relative z-10">
 
             {/* Timeline Item 1 */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex gap-6">
+            <Motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex gap-6">
               <div className="w-16 h-16 shrink-0 rounded-2xl bg-white border border-indigo-100 flex items-center justify-center shadow-sm relative z-10">
                 <span className="material-symbols-outlined text-indigo-600 text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>inventory_2</span>
               </div>
@@ -97,10 +97,10 @@ const OrganizerTimelinePage = () => {
                   </div>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
 
             {/* Timeline Item 2 - Active */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex gap-6">
+            <Motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="flex gap-6">
               <div className="w-16 h-16 shrink-0 rounded-2xl bg-white border-2 border-indigo-600 flex items-center justify-center shadow-md shadow-indigo-100 relative z-10">
                 <span className="material-symbols-outlined text-indigo-600 text-2xl font-bold">how_to_reg</span>
                 <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -133,10 +133,10 @@ const OrganizerTimelinePage = () => {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
 
             {/* Timeline Item 3 */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex gap-6">
+            <Motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="flex gap-6">
               <div className="w-16 h-16 shrink-0 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm relative z-10">
                 <span className="material-symbols-outlined text-slate-400 text-2xl">campaign</span>
               </div>
@@ -154,10 +154,10 @@ const OrganizerTimelinePage = () => {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
 
             {/* Timeline Item 4 */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex gap-6">
+            <Motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex gap-6">
               <div className="w-16 h-16 shrink-0 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm relative z-10">
                 <span className="material-symbols-outlined text-slate-400 text-2xl">record_voice_over</span>
               </div>
@@ -177,10 +177,10 @@ const OrganizerTimelinePage = () => {
                   </p>
                 </div>
               </div>
-            </motion.div>
+            </Motion.div>
 
             {/* Timeline Item 5 */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="flex gap-6 opacity-60">
+            <Motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="flex gap-6 opacity-60">
               <div className="w-16 h-16 shrink-0 rounded-2xl bg-transparent border-2 border-dashed border-slate-300 flex items-center justify-center relative z-10">
                 <span className="material-symbols-outlined text-slate-400 text-2xl">check_circle</span>
               </div>
@@ -188,7 +188,7 @@ const OrganizerTimelinePage = () => {
                 <h3 className="text-xl font-bold text-slate-600 mb-2">Bế mạc & Trao giải</h3>
                 <p className="text-slate-500 text-sm">Tổng kết, vinh danh và tiệc trà giao lưu (Networking).</p>
               </div>
-            </motion.div>
+            </Motion.div>
 
           </div>
         </div>

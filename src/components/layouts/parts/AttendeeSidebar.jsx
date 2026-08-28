@@ -11,9 +11,9 @@ import {
   LogOut,
   HelpCircle
 } from 'lucide-react';
-import { useAuth } from '../../../stores/AuthContext';
+import { useAuth } from '../../../stores/useAuth';
 
-const SidebarItem = ({ icon: Icon, label, active = false, onClick }) => (
+const SidebarItem = ({ icon: Icon, label, active = false, onClick }) => (void Icon,
   <div
     onClick={onClick}
     className={`flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-all duration-300 rounded-2xl group ${
@@ -48,7 +48,7 @@ const AttendeeSidebar = () => {
   return (
     <aside className="w-[var(--sidebar-width)] h-screen bg-white border-r border-slate-100 flex flex-col pt-4 pb-6">
       {/* Brand Section */}
-      <div 
+      <div
         onClick={() => navigate('/attendee/dashboard')}
         className="px-6 mb-8 cursor-pointer hover:opacity-85 transition-opacity"
       >

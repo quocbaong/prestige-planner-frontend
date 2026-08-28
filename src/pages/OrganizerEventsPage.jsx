@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { eventService } from '../services/eventService';
 import { ticketTypeService } from '../services/ticketTypeService';
 
@@ -86,7 +86,6 @@ const mapEventFromApi = (event) => {
 
 const OrganizerEventsPage = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('all');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [sortOption, setSortOption] = useState('Mới nhất');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -100,7 +99,7 @@ const OrganizerEventsPage = () => {
       setLoading(true);
       const res = await eventService.getEvents();
       setEvents(res.data.map(mapEventFromApi));
-    } catch (err) {
+    } catch {
       showNotification('Không thể tải danh sách sự kiện', 'error');
     } finally {
       setLoading(false);
@@ -242,7 +241,7 @@ const OrganizerEventsPage = () => {
       setTimeout(() => {
         setLoadingAi(false);
       }, 1200);
-    } catch (err) {
+    } catch {
       showNotification('Không thể tải thông tin chi tiết phân tích', 'error');
       setLoadingAi(false);
     } finally {
@@ -256,7 +255,7 @@ const OrganizerEventsPage = () => {
     try {
       const res = await ticketTypeService.getTicketTypes(event.id);
       setTicketTypes(res.data || []);
-    } catch (err) {
+    } catch {
       showNotification('Không thể lấy danh sách loại vé', 'error');
     } finally {
       setSetupTicketsLoading(false);
@@ -281,7 +280,7 @@ const OrganizerEventsPage = () => {
         totalQuantity: parseInt(newTicket.totalQuantity),
         maxPerOrder: parseInt(newTicket.maxPerOrder || 5),
       };
-      
+
       const res = await ticketTypeService.createTicketType(modalConfig.event.id, payload);
       setTicketTypes(prev => [...prev, res.data]);
       setNewTicket({ name: '', price: '', totalQuantity: '', maxPerOrder: 5 });
@@ -508,7 +507,7 @@ const OrganizerEventsPage = () => {
       {/* Notification Toast */}
       <AnimatePresence>
         {notification && (
-          <motion.div
+          <Motion.div
             initial={{ opacity: 0, y: -50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -50, scale: 0.95 }}
@@ -520,7 +519,7 @@ const OrganizerEventsPage = () => {
               {notification.type === 'error' ? 'error' : 'check_circle'}
             </span>
             <span className="font-bold text-sm">{notification.message}</span>
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
@@ -528,7 +527,7 @@ const OrganizerEventsPage = () => {
       <AnimatePresence>
         {modalConfig.isOpen && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6">
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -536,7 +535,7 @@ const OrganizerEventsPage = () => {
               className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             />
 
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -994,7 +993,7 @@ const OrganizerEventsPage = () => {
                                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Đã lấp đầy</p>
                                 </div>
                               </div>
-                              
+
                               {/* Colored Dots Indicators */}
                               <div className="flex gap-4 mt-6 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
                                 <div className="flex items-center gap-1.5">
@@ -1092,7 +1091,7 @@ const OrganizerEventsPage = () => {
                   );
                 })()}
               </div>
-            </motion.div>
+            </Motion.div>
           </div>
         )}
       </AnimatePresence>
@@ -1115,7 +1114,7 @@ const OrganizerEventsPage = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         {stats.map((stat, i) => (
-          <motion.div
+          <Motion.div
             key={i}
             whileHover={{ y: -5, scale: 1.02 }}
             className="bg-white p-5 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/80 hover:shadow-[0_20px_50px_rgba(79,70,229,0.08)] transition-all duration-500 group relative overflow-hidden"
@@ -1133,7 +1132,7 @@ const OrganizerEventsPage = () => {
               </span>
             </div>
             <h3 className="text-2xl font-black font-headline text-slate-900 relative z-10 tracking-tight">{stat.value}</h3>
-          </motion.div>
+          </Motion.div>
         ))}
       </div>
 
@@ -1154,7 +1153,7 @@ const OrganizerEventsPage = () => {
               {isFilterOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setIsFilterOpen(false)}></div>
-                  <motion.div
+                  <Motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -1172,7 +1171,7 @@ const OrganizerEventsPage = () => {
                         {STATUS_LABELS[status] || status}
                       </button>
                     ))}
-                  </motion.div>
+                  </Motion.div>
                 </>
               )}
             </AnimatePresence>
@@ -1192,7 +1191,7 @@ const OrganizerEventsPage = () => {
               {isDateOpen && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setIsDateOpen(false)}></div>
-                  <motion.div
+                  <Motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -1219,7 +1218,7 @@ const OrganizerEventsPage = () => {
 
                     <AnimatePresence>
                       {dateFilter === 'Tùy chọn' && (
-                        <motion.div
+                        <Motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
@@ -1233,10 +1232,10 @@ const OrganizerEventsPage = () => {
                             <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Đến ngày</label>
                             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all" />
                           </div>
-                        </motion.div>
+                        </Motion.div>
                       )}
                     </AnimatePresence>
-                  </motion.div>
+                  </Motion.div>
                 </>
               )}
             </AnimatePresence>
@@ -1260,7 +1259,7 @@ const OrganizerEventsPage = () => {
             {isSortOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setIsSortOpen(false)}></div>
-                <motion.div
+                <Motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
@@ -1286,7 +1285,7 @@ const OrganizerEventsPage = () => {
                       )}
                     </button>
                   ))}
-                </motion.div>
+                </Motion.div>
               </>
             )}
           </AnimatePresence>

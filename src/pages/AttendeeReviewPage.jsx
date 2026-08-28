@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Star, Heart, Lightbulb, ChevronDown, Smile, Sparkles, ArrowRight } from 'lucide-react';
-import axios from '../lib/axios';
+import { reviewService } from '../services/reviewService';
 
 const AttendeeReviewPage = () => {
   const navigate = useNavigate();
@@ -14,39 +14,9 @@ const AttendeeReviewPage = () => {
   const [improveText, setImproveText] = useState('');
   const [pastReviews, setPastReviews] = useState([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [eventsRes, reviewsRes] = await Promise.all([
-        axios.get('/api/v1/attendee/reviews/events'),
-        axios.get('/api/v1/attendee/reviews')
-      ]);
-
-      const reviewableEvents = eventsRes.data || [];
-      setEvents(reviewableEvents);
-
-      const userReviews = reviewsRes.data || [];
-      setPastReviews(userReviews);
-
-      if (reviewableEvents.length > 0) {
-        setSelectedEvent(reviewableEvents[0]);
-        prefillReview(reviewableEvents[0].eventId, userReviews);
-      }
-    } catch (err) {
-      console.error("Error loading review data:", err);
-      setError("Không thể tải danh sách sự kiện đã tham gia. Vui lòng thử lại sau.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const prefillReview = (eventId, reviewsList) => {
+  const prefillReview = useCallback((eventId, reviewsList) => {
     const existing = reviewsList.find(r => r.eventId === eventId);
     if (existing) {
       setRating(existing.rating);
@@ -65,7 +35,37 @@ const AttendeeReviewPage = () => {
       setLikeText('');
       setImproveText('');
     }
-  };
+  }, []);
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [eventsRes, reviewsRes] = await Promise.all([
+        reviewService.listReviewableEvents(),
+        reviewService.list()
+      ]);
+
+      const reviewableEvents = eventsRes.data || [];
+      setEvents(reviewableEvents);
+
+      const userReviews = reviewsRes.data || [];
+      setPastReviews(userReviews);
+
+      if (reviewableEvents.length > 0) {
+        setSelectedEvent(reviewableEvents[0]);
+        prefillReview(reviewableEvents[0].eventId, userReviews);
+      }
+    } catch (err) {
+      console.error("Error loading review data:", err);
+      setError("Không thể tải danh sách sự kiện đã tham gia. Vui lòng thử lại sau.");
+    } finally {
+      setLoading(false);
+    }
+  }, [prefillReview]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleEventChange = (event) => {
     setSelectedEvent(event);
@@ -80,7 +80,7 @@ const AttendeeReviewPage = () => {
 
     try {
       setSubmitting(true);
-      const res = await axios.post('/api/v1/attendee/reviews', {
+      const res = await reviewService.submit({
         eventId: selectedEvent.eventId,
         rating: rating,
         comment: combinedComment
@@ -137,9 +137,9 @@ const AttendeeReviewPage = () => {
     <div className="max-w-6xl mx-auto py-10 px-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Hero Banner */}
       <div className="relative w-full h-[220px] rounded-[48px] overflow-hidden mb-6 shadow-xl group">
-        <img 
-          src={selectedEvent?.eventBannerUrl || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=1600"} 
-          alt="Event Background" 
+        <img
+          src={selectedEvent?.eventBannerUrl || "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=1600"}
+          alt="Event Background"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-12">
@@ -158,7 +158,7 @@ const AttendeeReviewPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Left Column: Form */}
         <div className="lg:col-span-8 bg-white rounded-[48px] p-12 shadow-sm border border-slate-100">
-          
+
           {/* Custom Dropdown to Select Event */}
           <div className="relative mb-10">
             <label className="text-xs font-black text-slate-400 uppercase tracking-widest block mb-2 ml-1">
@@ -279,10 +279,10 @@ const AttendeeReviewPage = () => {
             <div className="pt-6 border-t border-indigo-100/50 flex items-center gap-4">
               <div className="flex -space-x-3">
                 {[1, 2, 3].map((i) => (
-                  <img 
-                    key={i} 
-                    src={`https://i.pravatar.cc/100?u=user${i+10}`} 
-                    className="w-8 h-8 rounded-full border-2 border-white shadow-sm" 
+                  <img
+                    key={i}
+                    src={`https://i.pravatar.cc/100?u=user${i+10}`}
+                    className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
                     alt="User"
                   />
                 ))}

@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../stores/AuthContext';
+import { useAuth } from '../../../stores/useAuth';
 import UserProfileModal from '../../modals/UserProfileModal';
 import NotificationDropdown from '../../common/NotificationDropdown';
-import axios from '../../../lib/axios';
+import { notificationService } from '../../../services/notificationService';
 
 const OrganizerHeader = ({ onToggleSidebar }) => {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-  
+
   const [notifications, setNotifications] = useState([]);
-  
+
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
   const fetchUnreadCount = async () => {
     try {
-      const response = await axios.get('/notifications');
+      const response = await notificationService.list();
       setNotifications(response.data || []);
     } catch (error) {
       console.error('Lỗi khi tải thông báo:', error);
@@ -26,17 +26,20 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
   };
 
   useEffect(() => {
-    fetchUnreadCount();
+    const initialLoad = setTimeout(fetchUnreadCount, 0);
     // Refresh every 30 seconds for dynamic feel
     const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(initialLoad);
+      clearInterval(interval);
+    };
   }, []);
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
   const getTitle = () => {
     const path = location.pathname;
-    
+
     // Xử lý tiêu đề cho module Báo cáo với phân cấp
     if (path === '/organizer/reports') return { main: "Báo cáo & Phân tích" };
     if (path === '/organizer/reports/analytics') return { parent: "Báo cáo thống kê", parentPath: "/organizer/reports", child: "Phân tích Chuyên sâu" };
@@ -85,17 +88,17 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
         <div className="flex items-center justify-between px-8 py-4">
           {/* Page Title / Breadcrumb */}
           <div className="flex items-center gap-2">
-            <button 
+            <button
               onClick={onToggleSidebar}
               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors mr-1"
             >
               <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">menu</span>
             </button>
-            
+
             <div className="flex items-center gap-1.5 overflow-hidden">
               {getTitle().parent ? (
                 <>
-                  <button 
+                  <button
                     onClick={() => navigate(getTitle().parentPath)}
                     className="text-[15px] font-medium text-slate-400 whitespace-nowrap hover:text-indigo-500 transition-colors"
                   >
@@ -117,15 +120,15 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
           <div className="flex items-center gap-6">
             <div className="relative flex items-center bg-surface-container-high rounded-full px-4 py-2 w-64">
               <span className="material-symbols-outlined text-slate-400 text-lg mr-2">search</span>
-              <input 
-                className="bg-transparent border-none focus:ring-0 text-sm w-full p-0 outline-none" 
-                placeholder="Tìm kiếm..." 
+              <input
+                className="bg-transparent border-none focus:ring-0 text-sm w-full p-0 outline-none"
+                placeholder="Tìm kiếm..."
                 type="text"
               />
             </div>
-            
+
             <div className="flex items-center gap-2 relative">
-              <button 
+              <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
                 className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative"
               >
@@ -136,10 +139,10 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
                   </span>
                 )}
               </button>
-              
-              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
-              
-              <button 
+
+              <NotificationDropdown isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} onNotificationStateChanged={fetchUnreadCount} />
+
+              <button
                 onClick={() => navigate('/organizer/settings')}
                 className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all"
                 title="Cài đặt hệ thống"
@@ -147,10 +150,10 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
                 <span className="material-symbols-outlined">settings</span>
               </button>
             </div>
-            
+
             {/* User Profile Trigger and Menu */}
             <div className="relative">
-              <div 
+              <div
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
                 className="flex items-center gap-3 pl-6 border-l border-slate-200 cursor-pointer group select-none"
               >
@@ -162,7 +165,7 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
                     {user?.role === 'ORGANIZER' ? 'Nhà tổ chức Prestige' : 'Ban tổ chức'}
                   </p>
                 </div>
-                
+
                 {/* Custom Avatar with premium initials layout */}
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-gradient-to-tr from-indigo-500 to-purple-600 text-white ring-2 ring-indigo-100 dark:ring-indigo-900 group-hover:ring-indigo-300 transition-all overflow-hidden shadow-sm">
                   {getInitials(user?.fullName)}
@@ -192,7 +195,7 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
                     </div>
 
                     <div className="px-2 py-2 border-b border-slate-100 dark:border-slate-800">
-                      <button 
+                      <button
                         onClick={() => {
                           setIsProfileMenuOpen(false);
                           setIsProfileModalOpen(true);
@@ -202,7 +205,7 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
                         <span className="material-symbols-outlined text-slate-400 text-lg">person</span>
                         Hồ sơ của tôi
                       </button>
-                      <button 
+                      <button
                         onClick={() => {
                           setIsProfileMenuOpen(false);
                           navigate('/organizer/settings');
@@ -215,7 +218,7 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
                     </div>
 
                     <div className="px-2 pt-2">
-                      <button 
+                      <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-sm font-bold rounded-xl transition-colors"
                       >
@@ -232,9 +235,9 @@ const OrganizerHeader = ({ onToggleSidebar }) => {
       </header>
 
       {/* Glassmorphism Detailed Profile Modal (Mockup design) */}
-      <UserProfileModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
       />
     </>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import OrganizerSidebar from './parts/OrganizerSidebar';
 import OrganizerHeader from './parts/OrganizerHeader';
 
@@ -11,7 +11,7 @@ const OrganizerLayout = () => {
     <div className="flex min-h-screen bg-bg-default">
       <AnimatePresence mode="wait">
         {isSidebarOpen && (
-          <motion.div
+          <Motion.div
             initial={{ x: -256 }}
             animate={{ x: 0 }}
             exit={{ x: -256 }}
@@ -19,12 +19,12 @@ const OrganizerLayout = () => {
             className="fixed left-0 top-0 h-screen z-50"
           >
             <OrganizerSidebar />
-          </motion.div>
+          </Motion.div>
         )}
       </AnimatePresence>
 
-      <motion.div 
-        animate={{ 
+      <Motion.div
+        animate={{
           marginLeft: isSidebarOpen ? '256px' : '0px',
           width: isSidebarOpen ? 'calc(100% - 256px)' : '100%'
         }}
@@ -37,7 +37,7 @@ const OrganizerLayout = () => {
         <main className="flex-1 w-full">
           <Outlet />
         </main>
-      </motion.div>
+      </Motion.div>
 
     </div>
   );

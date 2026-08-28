@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Landmark, AlertCircle, CheckCircle2, ChevronRight, DollarSign } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 
 const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
   const [amount, setAmount] = useState('');
@@ -31,7 +31,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-      <motion.div 
+      <Motion.div
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl overflow-hidden flex flex-col"
@@ -69,11 +69,11 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
                       {i === 1 ? 'Thiết lập' : 'Xác nhận'}
                     </span>
                   </div>
-                  
+
                   {/* Progress Line */}
                   {i === 1 && (
                     <div className="flex-1 h-0.5 bg-slate-100 dark:bg-slate-800 mx-2 rounded-full overflow-hidden">
-                      <motion.div 
+                      <Motion.div
                         initial={{ width: '0%' }}
                         animate={{ width: step > 1 ? '100%' : '0%' }}
                         className="h-full bg-indigo-600"
@@ -90,7 +90,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
         <div className="p-8">
           <AnimatePresence mode="wait">
             {step === 1 && (
-              <motion.div 
+              <Motion.div
                 key="step1"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -107,8 +107,8 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Số tiền muốn rút</label>
                   <div className="relative">
-                    <input 
-                      type="number" 
+                    <input
+                      type="number"
                       placeholder="0"
                       className="w-full pl-4 pr-12 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500 rounded-2xl text-xl font-bold outline-none transition-all dark:text-white"
                       value={amount}
@@ -118,7 +118,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
                   </div>
                   <div className="flex gap-2 mt-2">
                     {[5000000, 10000000, availableBalance].map((val) => (
-                      <button 
+                      <button
                         key={val}
                         onClick={() => setAmount(val.toString())}
                         className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 text-[10px] font-bold text-slate-600 dark:text-slate-400 hover:text-indigo-600 rounded-lg transition-colors border border-transparent hover:border-indigo-200"
@@ -134,7 +134,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
                   <label className="text-sm font-bold text-slate-700 dark:text-slate-300 ml-1">Chọn tài khoản nhận tiền</label>
                   <div className="space-y-2">
                     {banks.map((bank) => (
-                      <div 
+                      <div
                         key={bank.id}
                         onClick={() => setSelectedBank(bank)}
                         className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${
@@ -159,11 +159,11 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
 
             {step === 2 && (
-              <motion.div 
+              <Motion.div
                 key="step2"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -200,11 +200,11 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
                     Tiền sẽ được chuyển vào tài khoản của bạn trong vòng 24h làm việc. Vui lòng kiểm tra kỹ thông tin trước khi xác nhận.
                   </p>
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
 
             {step === 3 && (
-              <motion.div 
+              <Motion.div
                 key="step3"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -222,7 +222,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
                 <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-2xl text-xs text-slate-400 font-medium">
                   Mã tham chiếu: <span className="text-slate-900 dark:text-white font-bold">WD-77889911</span>
                 </div>
-              </motion.div>
+              </Motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -230,7 +230,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
         {/* Footer Buttons */}
         <div className="p-6 pt-0 flex gap-3">
           {step === 1 ? (
-            <button 
+            <button
               disabled={!amount || !selectedBank}
               onClick={handleNext}
               className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:bg-slate-300 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 active:scale-95 flex items-center justify-center gap-2"
@@ -240,13 +240,13 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
             </button>
           ) : step === 2 ? (
             <>
-              <button 
+              <button
                 onClick={() => setStep(1)}
                 className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold rounded-2xl transition-all hover:bg-slate-200 active:scale-95"
               >
                 Quay lại
               </button>
-              <button 
+              <button
                 onClick={handleNext}
                 className="flex-[2] py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 active:scale-95"
               >
@@ -254,7 +254,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
               </button>
             </>
           ) : (
-            <button 
+            <button
               onClick={handleClose}
               className="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-2xl transition-all hover:opacity-90 active:scale-95"
             >
@@ -262,7 +262,7 @@ const WithdrawalModal = ({ isOpen, onClose, availableBalance }) => {
             </button>
           )}
         </div>
-      </motion.div>
+      </Motion.div>
     </div>
   );
 

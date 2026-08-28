@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Phone, ShieldCheck, Check, X, Ban, Globe, Ticket, Edit3, Lock } from 'lucide-react';
-import { useAuth } from '../../stores/AuthContext';
+import { useAuth } from '../../stores/useAuth';
 import { eventService } from '../../services/eventService';
 
 const UserProfileModal = ({ isOpen, onClose }) => {
   const { user, updateUser } = useAuth();
   const [eventCount, setEventCount] = useState(0);
-  const [isLocked, setIsLocked] = useState(false);
-  
+
   // States cho phép chỉnh sửa thông tin
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -85,7 +84,6 @@ const UserProfileModal = ({ isOpen, onClose }) => {
   const handleLockAccount = () => {
     const confirmLock = window.confirm("Bạn có chắc chắn muốn tạm khóa tài khoản nhà tổ chức này không? Các sự kiện đang diễn ra sẽ bị tạm dừng.");
     if (confirmLock) {
-      setIsLocked(true);
       alert("Tài khoản nhà tổ chức đã được chuyển sang trạng thái tạm khóa.");
       onClose();
     }
@@ -94,14 +92,14 @@ const UserProfileModal = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
       {/* Backdrop blur overlay */}
-      <div 
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" 
+      <div
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Modal Card customized logically for the Organizer */}
       <div className="relative bg-white border border-slate-100 rounded-[32px] shadow-2xl max-w-2xl w-full overflow-hidden text-slate-800 font-sans animate-in fade-in zoom-in-95 duration-250 z-10">
-        
+
         {/* Top Header Gradient (Indigo to Purple - Premium branding vibe) */}
         <div className="h-28 bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 relative">
           {/* Quick Edit Indicator in Header */}
@@ -113,7 +111,7 @@ const UserProfileModal = ({ isOpen, onClose }) => {
           </div>
 
           {/* Close Button X */}
-          <button 
+          <button
             onClick={onClose}
             className="absolute top-5 right-5 text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-full transition-all"
           >
@@ -123,7 +121,7 @@ const UserProfileModal = ({ isOpen, onClose }) => {
 
         {/* Main Body */}
         <div className="px-10 pb-8 pt-16 relative">
-          
+
           {/* Avatar overlapping the top gradient bar */}
           <div className="absolute left-10 -top-16">
             <div className="w-28 h-28 rounded-full border-[6px] border-white shadow-xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 text-white flex items-center justify-center font-black text-3xl overflow-hidden ring-1 ring-slate-100 select-none">
@@ -136,9 +134,9 @@ const UserProfileModal = ({ isOpen, onClose }) => {
             {isEditing ? (
               <div className="space-y-1">
                 <label className="text-[10px] font-extrabold text-indigo-500 uppercase tracking-widest block">Tên Thương Hiệu/Công ty</label>
-                <input 
-                  type="text" 
-                  value={editFullName} 
+                <input
+                  type="text"
+                  value={editFullName}
                   onChange={(e) => setEditFullName(e.target.value)}
                   className="w-full text-2xl font-extrabold text-slate-900 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
                   placeholder="Tên thương hiệu"
@@ -175,14 +173,14 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                       {isEditing && <Lock className="w-3.5 h-3.5 text-slate-300" title="Email định danh không thể chỉnh sửa" />}
                     </div>
                   </div>
-                  
+
                   {/* Phone (Editable) */}
                   <div className="flex items-center gap-3 text-slate-600">
                     <Phone className="w-4 h-4 text-slate-400" />
                     {isEditing ? (
-                      <input 
-                        type="text" 
-                        value={editPhone} 
+                      <input
+                        type="text"
+                        value={editPhone}
                         onChange={(e) => setEditPhone(e.target.value)}
                         className="flex-grow px-3 py-1 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                         placeholder="Số điện thoại"
@@ -191,14 +189,14 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                       <span className="text-sm font-semibold text-slate-700">{user?.phone || editPhone}</span>
                     )}
                   </div>
-                  
+
                   {/* Website (Editable) */}
                   <div className="flex items-center gap-3 text-slate-600">
                     <Globe className="w-4 h-4 text-slate-400" />
                     {isEditing ? (
-                      <input 
-                        type="text" 
-                        value={editWebsite} 
+                      <input
+                        type="text"
+                        value={editWebsite}
                         onChange={(e) => setEditWebsite(e.target.value)}
                         className="flex-grow px-3 py-1 border border-slate-200 rounded-lg text-xs font-semibold text-indigo-600 focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                         placeholder="https://..."
@@ -211,16 +209,16 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Address (Editable) */}
               <div>
                 <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">
                   Trụ sở chính
                 </span>
                 {isEditing ? (
-                  <input 
-                    type="text" 
-                    value={editAddress} 
+                  <input
+                    type="text"
+                    value={editAddress}
                     onChange={(e) => setEditAddress(e.target.value)}
                     className="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:ring-1 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
                     placeholder="Địa chỉ trụ sở"
@@ -300,7 +298,7 @@ const UserProfileModal = ({ isOpen, onClose }) => {
           {/* Footer Actions with Dynamic Toggle Buttons */}
           <div className="flex items-center justify-between pt-2">
             {/* Lock Account */}
-            <button 
+            <button
               onClick={handleLockAccount}
               className="text-rose-600 hover:text-rose-700 font-bold text-sm transition-colors flex items-center gap-2"
             >
@@ -312,13 +310,13 @@ const UserProfileModal = ({ isOpen, onClose }) => {
             <div className="flex items-center gap-3">
               {isEditing ? (
                 <>
-                  <button 
+                  <button
                     onClick={handleCancel}
                     className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3.5 rounded-full text-sm transition-colors"
                   >
                     Hủy
                   </button>
-                  <button 
+                  <button
                     onClick={handleSave}
                     disabled={isSaving}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3.5 rounded-full text-sm shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -335,13 +333,13 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                 </>
               ) : (
                 <>
-                  <button 
+                  <button
                     onClick={onClose}
                     className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-6 py-3.5 rounded-full text-sm transition-colors"
                   >
                     Đóng
                   </button>
-                  <button 
+                  <button
                     onClick={() => setIsEditing(true)}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3.5 rounded-full text-sm shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all flex items-center gap-1.5"
                   >

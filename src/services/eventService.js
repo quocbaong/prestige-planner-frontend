@@ -1,4 +1,4 @@
-import api from '../lib/axios';
+﻿import api from '../lib/axios';
 
 export const eventService = {
   getEvents: () => api.get('/organizer/events'),
@@ -25,3 +25,4 @@ export const eventService = {
   getPublicEventSchedules: (id) => api.get(`/events/${id}/schedules`),
   getPublicEventTimeline: (id) => api.get(`/events/${id}/timeline`),
 };
+
