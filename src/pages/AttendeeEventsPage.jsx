@@ -182,11 +182,15 @@ const AttendeeEventsPage = () => {
                     <span className="text-xs text-slate-700 font-black">
                       {reg.tickets?.length || 0} vé
                     </span>
-                    <button 
-                      onClick={() => navigate('/attendee/tickets', { state: { selectedRegId: reg.id } })}
+                    <button
+                      onClick={() => reg.status === 'PENDING'
+                        ? navigate(`/events/${reg.eventSlug}`, {
+                          state: { pendingRegistrationId: reg.id }
+                        })
+                        : navigate('/attendee/tickets', { state: { selectedRegId: reg.id } })}
                       className="text-xs font-black text-indigo-600 hover:text-indigo-800 transition-colors flex items-center gap-1.5 group"
                     >
-                      <span>Chi tiết vé</span>
+                      <span>{reg.status === 'PENDING' ? 'Thanh toán ngay' : 'Chi tiết vé'}</span>
                       <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                     </button>
                   </div>

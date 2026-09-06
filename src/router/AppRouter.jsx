@@ -81,7 +81,6 @@ const AppRouter = () => {
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="events" element={<GlobalEventsPage />} />
-          <Route path="events/create" element={<CreateEventPage />} />
           <Route path="broadcast" element={<BroadcastPage />} />
           <Route path="feedback" element={<FeedbackPage />} />
           <Route path="settings" element={<SettingsPage />} />

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { bookingReturnPath } from '../lib/booking';
 import { useAuth } from '../stores/useAuth';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import logo from '../assets/logo.png';
@@ -16,6 +17,7 @@ const LoginPage = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +26,10 @@ const LoginPage = () => {
 
     try {
       const user = await login(email, password);
-      if (user.role === 'ADMIN') {
+      const returnTo = bookingReturnPath(location.state?.from);
+      if (returnTo && (!returnTo.startsWith('/attendee/') || user.role === 'ATTENDEE')) {
+        navigate(returnTo, { replace: true, state: { booking: location.state?.booking } });
+      } else if (user.role === 'ADMIN') {
         navigate('/admin/dashboard');
       } else if (user.role === 'ORGANIZER') {
         navigate('/organizer/dashboard');

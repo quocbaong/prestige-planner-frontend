@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
@@ -21,11 +21,9 @@ import {
   GraduationCap,
   PartyPopper,
   HelpCircle,
-  X,
   Plus
 } from 'lucide-react';
 import { eventService } from '../services/eventService';
-import { useAuth } from '../stores/useAuth';
 
 const CATEGORIES = [
   { value: 'MUSIC', label: 'Âm nhạc', icon: Music, color: 'from-pink-500 to-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/20', text: 'text-rose-600' },
@@ -41,9 +39,7 @@ const CATEGORIES = [
 
 const CreateEventPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'ADMIN';
-  const redirectPath = isAdmin ? '/admin/events' : '/organizer/events';
+  const redirectPath = '/organizer/events';
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -54,7 +50,6 @@ const CreateEventPage = () => {
   const [form, setForm] = useState({
     title: '',
     description: '',
-    shortDesc: '',
     category: 'TECH',
     venue: '',
     address: '',
@@ -63,39 +58,46 @@ const CreateEventPage = () => {
     endDate: '',
     registrationDeadline: '',
     maxAttendees: '',
-    bannerUrl: '',
-    thumbnailUrl: '',
   });
 
-  const [tagInput, setTagInput] = useState('');
-  const [tags, setTags] = useState([]);
-
   // Image preview state
-  const [bannerPreviewError, setBannerPreviewError] = useState(false);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState('');
+
+  useEffect(() => () => {
+    if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
+  }, [thumbnailPreviewUrl]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddTag = (e) => {
-    e.preventDefault();
-    const cleanTag = tagInput.trim();
-    if (cleanTag && !tags.includes(cleanTag)) {
-      setTags([...tags, cleanTag]);
-      setTagInput('');
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files?.[0];
+    // Allow reselecting the same file after removing it or cancelling a replacement.
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Thumbnail phải là một tệp hình ảnh');
+      e.target.value = '';
+      return;
     }
-  };
-
-  const handleRemoveTag = (indexToRemove) => {
-    setTags(tags.filter((_, idx) => idx !== indexToRemove));
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Thumbnail không được vượt quá 5MB');
+      e.target.value = '';
+      return;
+    }
+    setError('');
+    setThumbnailFile(file);
+    setThumbnailPreviewUrl(URL.createObjectURL(file));
   };
 
   const handleStepNext = () => {
     // Validation for Step 1
     if (step === 1) {
       if (!form.title.trim()) return setError('Vui lòng nhập tên sự kiện');
-      if (!form.description.trim()) return setError('Vui lòng nhập mô tả chi tiết');
+      if (!form.description.trim()) return setError('Vui lòng nhập mô tả');
       setError('');
     }
 
@@ -134,14 +136,24 @@ const CreateEventPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Do not create the event before the image/banner step is completed.
+    if (step < 3) {
+      handleStepNext();
+      return;
+    }
     setLoading(true);
     setError('');
 
     try {
+      let uploadedThumbnailUrl;
+      if (thumbnailFile) {
+        const uploadResponse = await eventService.uploadEventMedia(thumbnailFile);
+        uploadedThumbnailUrl = eventService.resolveMediaUrl(uploadResponse.data.url);
+      }
+
       const payload = {
         title: form.title,
         description: form.description,
-        shortDesc: form.shortDesc || undefined,
         category: form.category,
         venue: form.venue,
         address: form.address,
@@ -150,9 +162,7 @@ const CreateEventPage = () => {
         endDate: new Date(form.endDate).toISOString(),
         registrationDeadline: form.registrationDeadline ? new Date(form.registrationDeadline).toISOString() : undefined,
         maxAttendees: form.maxAttendees ? parseInt(form.maxAttendees) : undefined,
-        bannerUrl: form.bannerUrl || undefined,
-        thumbnailUrl: form.thumbnailUrl || form.bannerUrl || undefined,
-        tags: tags.length > 0 ? tags : undefined
+        thumbnailUrl: uploadedThumbnailUrl,
       };
 
       await eventService.createEvent(payload);
@@ -296,7 +306,7 @@ const CreateEventPage = () => {
                       <FileText className="w-5 h-5 text-indigo-600" />
                       Thông tin cơ bản sự kiện
                     </h3>
-                    <p className="text-xs text-slate-400 font-medium">Đặt tên, mô tả ngắn gọn và phân loại sự kiện.</p>
+                    <p className="text-xs text-slate-400 font-medium">Đặt tên, mô tả và phân loại sự kiện.</p>
                   </div>
 
                   {/* Title */}
@@ -315,26 +325,10 @@ const CreateEventPage = () => {
                     />
                   </div>
 
-                  {/* Short Description */}
+                  {/* Description */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                      Mô tả ngắn gọn
-                    </label>
-                    <input
-                      type="text"
-                      name="shortDesc"
-                      value={form.shortDesc}
-                      onChange={handleInputChange}
-                      placeholder="Một câu mô tả thu hút người xem trong danh sách (tối đa 150 ký tự)"
-                      maxLength={150}
-                      className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-800 placeholder-slate-400"
-                    />
-                  </div>
-
-                  {/* Detailed Description */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                      Mô tả chi tiết *
+                      Mô tả *
                     </label>
                     <textarea
                       required
@@ -376,48 +370,6 @@ const CreateEventPage = () => {
                     </div>
                   </div>
 
-                  {/* Tags Input */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                      Từ khóa (Tags)
-                    </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={tagInput}
-                        onChange={(e) => setTagInput(e.target.value)}
-                        placeholder="Nhập từ khóa và bấm nút Thêm"
-                        className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-800 placeholder-slate-400"
-                      />
-                      <button
-                        onClick={handleAddTag}
-                        className="px-5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold transition-all shadow-md flex items-center justify-center"
-                      >
-                        Thêm
-                      </button>
-                    </div>
-
-                    {/* Tag Pills */}
-                    {tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-2">
-                        {tags.map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 rounded-full text-xs font-bold text-slate-700 transition-colors"
-                          >
-                            #{tag}
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveTag(idx)}
-                              className="w-4 h-4 bg-slate-200 hover:bg-rose-100 hover:text-rose-600 rounded-full flex items-center justify-center transition-colors"
-                            >
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                 </Motion.div>
               )}
 
@@ -488,6 +440,7 @@ const CreateEventPage = () => {
                         className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-800 placeholder-slate-400"
                       />
                     </div>
+
                   </div>
 
                   {/* Max Attendees */}
@@ -560,7 +513,7 @@ const CreateEventPage = () => {
                 </Motion.div>
               )}
 
-              {/* STEP 3: BANNER, THUMBNAIL & ATTENDEE LIMITS */}
+              {/* STEP 3: THUMBNAIL */}
               {step === 3 && (
                 <Motion.div
                   key="step3"
@@ -575,65 +528,64 @@ const CreateEventPage = () => {
                       <ImageIcon className="w-5 h-5 text-indigo-600" />
                       Hình ảnh & Quảng bá
                     </h3>
-                    <p className="text-xs text-slate-400 font-medium">Cung cấp hình ảnh banner và quảng bá sự kiện.</p>
+                    <p className="text-xs text-slate-400 font-medium">Thêm ảnh thu nhỏ để sự kiện của bạn dễ nhận diện hơn.</p>
                   </div>
 
-                  {/* Banner URL */}
-                  <div className="space-y-2 pt-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                      URL Hình ảnh Banner *
-                    </label>
-                    <input
-                      type="url"
-                      name="bannerUrl"
-                      value={form.bannerUrl}
-                      onChange={(e) => {
-                        handleInputChange(e);
-                        setBannerPreviewError(false);
-                      }}
-                      placeholder="Dán link ảnh từ Unsplash hoặc lưu trữ trực tuyến..."
-                      className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-800 placeholder-slate-400"
-                    />
-                  </div>
-
-                  {/* Thumbnail URL */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                      URL Hình ảnh Thu nhỏ (Thumbnail - Không bắt buộc)
-                    </label>
-                    <input
-                      type="url"
-                      name="thumbnailUrl"
-                      value={form.thumbnailUrl}
-                      onChange={handleInputChange}
-                      placeholder="Nếu bỏ trống, hệ thống sẽ sử dụng ảnh Banner làm ảnh thu nhỏ"
-                      className="w-full px-5 py-3.5 rounded-2xl border border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all font-bold text-slate-800 placeholder-slate-400"
-                    />
-                  </div>
-
-                  {/* Live Banner Preview */}
-                  <div className="pt-4">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 block mb-2">
-                      Xem trước Banner
-                    </span>
-                    <div className="w-full aspect-video rounded-3xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center overflow-hidden shadow-inner relative group">
-                      {form.bannerUrl && !bannerPreviewError ? (
-                        <img
-                          src={form.bannerUrl}
-                          alt="Banner Preview"
-                          className="w-full h-full object-cover"
-                          onError={() => setBannerPreviewError(true)}
-                        />
-                      ) : (
-                        <div className="text-center p-6 text-slate-400 space-y-2">
-                          <ImageIcon className="w-10 h-10 mx-auto opacity-50 stroke-[1.5px]" />
-                          <p className="text-xs font-bold uppercase tracking-wider">Chưa có ảnh preview</p>
-                          <p className="text-[10px] text-slate-400 max-w-xs font-medium leading-relaxed">
-                            Dán đường dẫn URL ảnh hợp lệ vào trường phía trên để xem trước tại đây.
-                          </p>
-                        </div>
-                      )}
+                  {/* Thumbnail upload */}
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label htmlFor="event-thumbnail" className="text-sm font-bold text-slate-800">
+                        Hình ảnh Thumbnail
+                      </label>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-500">Không bắt buộc</span>
                     </div>
+                    <div className="relative rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 transition-colors hover:border-indigo-400 hover:bg-indigo-50 focus-within:ring-4 focus-within:ring-indigo-500/20">
+                      <input
+                        id="event-thumbnail"
+                        type="file"
+                        name="thumbnailFile"
+                        accept="image/*"
+                        disabled={loading}
+                        aria-describedby="thumbnail-help"
+                        onChange={handleThumbnailChange}
+                        className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                      />
+                      <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
+                        {thumbnailPreviewUrl ? (
+                          <img src={thumbnailPreviewUrl} alt="Xem trước ảnh thumbnail" className="max-h-56 w-full rounded-xl object-contain" />
+                        ) : (
+                          <span className="rounded-2xl bg-white p-4 text-indigo-600 shadow-sm">
+                            <ImageIcon className="h-8 w-8" />
+                          </span>
+                        )}
+                        <span className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white">
+                          {thumbnailFile ? 'Đổi ảnh khác' : 'Chọn ảnh từ thiết bị'}
+                        </span>
+                        <p id="thumbnail-help" className="text-xs leading-relaxed text-slate-500">
+                          Chọn một tệp hình ảnh, dung lượng tối đa 5 MB.
+                        </p>
+                      </div>
+                    </div>
+                    {thumbnailFile && (
+                      <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3">
+                        <div className="min-w-0" aria-live="polite">
+                          <p className="truncate text-sm font-semibold text-slate-700" title={thumbnailFile.name}>{thumbnailFile.name}</p>
+                          <p className="mt-1 text-xs text-slate-500">{(thumbnailFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={loading}
+                          onClick={() => {
+                            setThumbnailFile(null);
+                            setThumbnailPreviewUrl('');
+                            setError('');
+                          }}
+                          className="shrink-0 rounded-lg px-3 py-2 text-xs font-bold text-rose-600 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-rose-500 disabled:opacity-50"
+                        >
+                          Bỏ ảnh
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </Motion.div>
               )}
@@ -653,8 +605,13 @@ const CreateEventPage = () => {
 
               {step < 3 ? (
                 <button
+                  key="next-step"
                   type="button"
-                  onClick={handleStepNext}
+                  onClick={(e) => {
+                    // Cancel native activation before switching to the submit button.
+                    e.preventDefault();
+                    handleStepNext();
+                  }}
                   className="flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm transition-all shadow-lg shadow-indigo-200 active:scale-95"
                 >
                   Tiếp theo
@@ -662,6 +619,7 @@ const CreateEventPage = () => {
                 </button>
               ) : (
                 <button
+                  key="create-event"
                   type="submit"
                   disabled={loading}
                   className="flex items-center gap-2 px-10 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:brightness-110 text-white font-black text-sm transition-all shadow-xl shadow-indigo-200 disabled:opacity-50 disabled:pointer-events-none active:scale-95"

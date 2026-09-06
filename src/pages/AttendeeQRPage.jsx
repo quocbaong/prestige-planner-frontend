@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Sun, QrCode, ArrowLeft, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../stores/useAuth';
@@ -166,9 +167,10 @@ const AttendeeQRPage = () => {
             <div className="w-[320px] h-[320px] bg-white rounded-[36px] shadow-[0_15px_40px_rgba(0,0,0,0.04)] border border-slate-200/80 flex flex-col items-center justify-center p-8 transition-transform duration-300 hover:scale-[1.01] relative overflow-hidden">
               {/* QR Image */}
               <div className="w-48 h-48 relative flex items-center justify-center">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrDataValue)}`}
-                  alt="Check-in QR Code"
+                <QRCodeSVG
+                  value={qrDataValue}
+                  title="Check-in QR Code"
+                  marginSize={4}
                   className="w-full h-full object-contain"
                 />
 

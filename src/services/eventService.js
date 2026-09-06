@@ -1,11 +1,26 @@
 ﻿import api from '../lib/axios';
 
+import { resolveMediaUrl as resolveMediaPath, resolveEventImage } from '../lib/eventImage';
+
+const resolveMediaUrl = (path) => resolveMediaPath(path, api.defaults.baseURL);
+
 export const eventService = {
   getEvents: () => api.get('/organizer/events'),
 
   getEvent: (id) => api.get(`/organizer/events/${id}`),
 
   createEvent: (data) => api.post('/organizer/events', data),
+
+  uploadEventMedia: (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/organizer/event-media', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  resolveMediaUrl,
+  getEventImageUrl: (event) => resolveEventImage(event, api.defaults.baseURL),
 
   updateEvent: (id, data) => api.put(`/organizer/events/${id}`, data),
 
@@ -21,7 +36,7 @@ export const eventService = {
   getPublicEvents: (params) => api.get('/events', { params }),
   getPublicFeaturedEvents: () => api.get('/events/featured'),
   getPublicUpcomingEvents: () => api.get('/events/upcoming'),
-  getPublicEventDetail: (slug) => api.get(`/events/${slug}`),
+  getPublicEventDetail: (slug) => api.get(`/events/${encodeURIComponent(slug)}`),
   getPublicEventSchedules: (id) => api.get(`/events/${id}/schedules`),
   getPublicEventTimeline: (id) => api.get(`/events/${id}/timeline`),
 };
