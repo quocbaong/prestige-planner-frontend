@@ -245,8 +245,8 @@ const AttendeeExplorePage = () => {
                   <Heart className={`w-5 h-5 ${favorites.some(f => f.id === featuredEvents[0].id) ? 'fill-current' : 'text-slate-400'}`} />
                 </button>
 
-               {featuredEvents[0].bannerUrl ? (
-                 <img src={featuredEvents[0].bannerUrl} alt={featuredEvents[0].title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
+               {eventService.getEventImageUrl(featuredEvents[0]) ? (
+                 <img src={eventService.getEventImageUrl(featuredEvents[0])} alt={featuredEvents[0].title} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
                ) : (
                  <div className="w-full h-full bg-indigo-950 flex items-center justify-center text-slate-400">
                    <span className="material-symbols-outlined text-6xl">event</span>
@@ -281,8 +281,8 @@ const AttendeeExplorePage = () => {
                       <Heart className={`w-4 h-4 ${favorites.some(f => f.id === c.id) ? 'fill-current' : 'text-slate-400'}`} />
                     </button>
 
-                   {c.bannerUrl ? (
-                     <img src={c.bannerUrl} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                   {eventService.getEventImageUrl(c) ? (
+                     <img src={eventService.getEventImageUrl(c)} alt={c.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                    ) : (
                      <div className="w-full h-full bg-slate-900 flex items-center justify-center text-slate-500">
                        <span className="material-symbols-outlined text-4xl">event</span>
@@ -357,8 +357,8 @@ const AttendeeExplorePage = () => {
                     >
                       <Heart className={`w-4 h-4 ${favorites.some(f => f.id === event.id) ? 'fill-current' : 'text-slate-400'}`} />
                     </button>
-                   {event.bannerUrl ? (
-                     <img src={event.bannerUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                   {eventService.getEventImageUrl(event) ? (
+                     <img src={eventService.getEventImageUrl(event)} alt={event.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                    ) : (
                      <div className="w-full h-full bg-[#5c46e5]/10 flex items-center justify-center text-slate-300">
                        <span className="material-symbols-outlined text-4xl">event</span>

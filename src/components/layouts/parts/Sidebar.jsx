@@ -7,7 +7,6 @@ import {
   BarChart3,
   Wallet,
   Settings,
-  Plus,
   HelpCircle,
   LogOut,
   Megaphone,
@@ -75,15 +74,6 @@ const Sidebar = () => {
 
       {/* Bottom Section */}
       <div className="px-4 space-y-4">
-        {/* Create Event Button */}
-        <button
-          onClick={() => navigate('/admin/events/create')}
-          className="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg shadow-primary/25 transition-all duration-300 transform hover:-translate-y-1"
-        >
-          <Plus className="w-5 h-5" />
-          <span>Tạo sự kiện mới</span>
-        </button>
-
         <div className="pt-4 space-y-1 border-t border-border-color">
           <SidebarItem
             icon={HelpCircle}
