@@ -58,7 +58,14 @@ Dự án được xây dựng trên nền tảng công nghệ hiện đại nh�
    npm install
    ```
 
-3. **Khởi chạy môi trường Phát triển**
+3. **Cấu hình Gateway API**
+   ```bash
+   cp .env.example .env.local
+   ```
+
+   Đặt `VITE_API_URL` thành địa chỉ Gateway của bạn (mặc định: `http://localhost:8080`).
+
+4. **Khởi chạy môi trường Phát triển**
    ```bash
    npm run dev
    ```

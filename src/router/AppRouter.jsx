@@ -23,6 +23,7 @@ import AttendeeQRPage from '../pages/AttendeeQRPage';
 import AttendeeReviewPage from '../pages/AttendeeReviewPage';
 import AttendeeFavoritesPage from '../pages/AttendeeFavoritesPage';
 import OrganizerLayout from '../components/layouts/OrganizerLayout';
+import VendorLayout from '../components/layouts/VendorLayout';
 import OrganizerDashboardPage from '../pages/OrganizerDashboardPage';
 import OrganizerEventsPage from '../pages/OrganizerEventsPage';
 import OrganizerAttendeesPage from '../pages/OrganizerAttendeesPage';
@@ -34,6 +35,7 @@ import OrganizerReportAnalyticsPage from '../pages/OrganizerReportAnalyticsPage'
 import OrganizerReportTemplatesPage from '../pages/OrganizerReportTemplatesPage';
 import OrganizerFinancePage from '../pages/OrganizerFinancePage';
 import OrganizerEventFinancePage from '../pages/OrganizerEventFinancePage';
+import VendorDashboardPage from '../pages/VendorDashboardPage';
 import CreateEventPage from '../pages/CreateEventPage';
 import InvitationAcceptPage from '../pages/InvitationAcceptPage';
 import NotificationPage from '../pages/NotificationPage';
@@ -128,6 +130,17 @@ const AppRouter = () => {
           <Route path="notifications" element={<NotificationPage />} />
         </Route>
 
+        {/* Vendor Protected Routes */}
+        <Route path="/vendor" element={<ProtectedRoute allowedRoles={['VENDOR']}><VendorLayout /></ProtectedRoute>}>
+          <Route index element={<Navigate to="/vendor/dashboard" replace />} />
+          <Route path="dashboard" element={<VendorDashboardPage />} />
+          <Route path="services" element={<VendorDashboardPage />} />
+          <Route path="orders" element={<VendorDashboardPage />} />
+          <Route path="chat" element={<VendorDashboardPage />} />
+          <Route path="ai" element={<VendorDashboardPage />} />
+          <Route path="reports" element={<VendorDashboardPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+        </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

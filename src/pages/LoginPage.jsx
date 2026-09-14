@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../stores/useAuth';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import logo from '../assets/logo.png';
@@ -14,8 +14,29 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
 
-  const { login } = useAuth();
+  const { login, setSession } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('demo') === 'vendor') {
+      handleVendorDemoLogin();
+    }
+  }, [location.search]);
+
+  const handleVendorDemoLogin = () => {
+    const vendorUser = {
+      id: 'vendor-demo',
+      fullName: 'Vendor Demo',
+      email: 'vendor@demo.local',
+      role: 'VENDOR',
+      isVerified: true,
+    };
+
+    setSession(vendorUser);
+    navigate('/vendor/dashboard');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -137,10 +158,11 @@ const LoginPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
-                  <input
-                    type="email"
-                    id="email"
-                    value={email}
+              <input
+                type="email"
+                id="email"
+                autoComplete="email"
+                value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="block w-full pl-14 pr-5 py-4.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium placeholder-gray-400"
                     placeholder="name@company.com"
@@ -158,10 +180,11 @@ const LoginPage = () => {
                 <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
                   <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-indigo-600 transition-colors" />
                 </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    value={password}
+              <input
+                type={showPassword ? 'text' : 'password'}
+                id="password"
+                autoComplete="current-password"
+                value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="block w-full pl-14 pr-14 py-4.5 bg-gray-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none text-gray-900 font-medium placeholder-gray-400"
                     placeholder="••••••••"
@@ -198,6 +221,14 @@ const LoginPage = () => {
               ) : (
                 'Đăng nhập vào EventArchitect'
               )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleVendorDemoLogin}
+              className="mt-4 w-full rounded-2xl border border-indigo-200 bg-indigo-50 px-6 py-4 text-base font-bold text-indigo-700 transition-all hover:bg-indigo-100"
+            >
+              Đăng nhập nhanh với Vendor Demo
             </button>
           </form>
 
