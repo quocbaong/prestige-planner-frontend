@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
       setUser(userData);
       return userData;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.apiError?.message || error.response?.data?.message || error.message || 'Registration failed';
     }
   };
 
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authService.register(registerData);
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw error.apiError?.message || error.response?.data?.message || error.message || 'Login failed';
     }
   };
 
@@ -49,6 +49,23 @@ export const AuthProvider = ({ children }) => {
       clearSession();
       setUser(null);
     }
+  };
+
+  const setSession = (userData, token = 'vendor-demo-token', refreshToken = 'vendor-demo-refresh') => {
+    const normalizedUser = {
+      id: userData.id || 'vendor-demo',
+      email: userData.email || 'vendor@demo.local',
+      fullName: userData.fullName || 'Vendor Demo',
+      role: userData.role || 'VENDOR',
+      isVerified: true,
+      ...userData,
+    };
+
+    localStorage.setItem('accessToken', token);
+    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
+    setUser(normalizedUser);
+    return normalizedUser;
   };
 
   const updateUser = async (updatedData) => {
@@ -65,7 +82,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser }}>
+    <AuthContext.Provider value={{ user, login, register, logout, loading, updateUser, setSession }}>
       {children}
     </AuthContext.Provider>
   );
