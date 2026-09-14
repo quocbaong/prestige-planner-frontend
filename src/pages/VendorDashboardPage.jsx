@@ -47,7 +47,7 @@ const VendorDashboardPage = () => {
               <CalendarRange className="h-3.5 w-3.5" />
               Dashboard Vendor
             </p>
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Chào mừng quay lại, Vendor 👋</h1>
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Chào mừng quay lại, Vender 👋</h1>
             <p className="mt-3 max-w-xl text-sm text-blue-100 sm:text-base">
               Theo dõi doanh thu, đơn hàng và hiệu suất dịch vụ của bạn trên cùng một hệ thống.
             </p>
