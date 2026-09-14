@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion as Motion, AnimatePresence } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { Heart, Armchair } from 'lucide-react';
 import { useAuth } from '../stores/useAuth';
 import { eventService } from '../services/eventService';
 import { registrationService } from '../services/registrationService';
 import LandingNavbar from '../components/common/LandingNavbar';
 import LandingFooter from '../components/common/LandingFooter';
+import { bookingAvailability } from '../lib/booking';
+import { QRCodeSVG } from 'qrcode.react';
+import SeatSelectionModal from '../components/modals/SeatSelectionModal';
 
 const categoryMap = {
   MUSIC: { label: 'ÂM NHẠC', icon: 'music_note' },
@@ -44,12 +47,51 @@ const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
 };
 
+const getTicketAvailabilityReason = (ticket, event, now = Date.now()) => {
+  if (event?.isSalesActive === false) return 'Tạm ngừng bán';
+  if (ticket?.isActive === false) return 'Đã ngừng bán';
+  if (ticket?.saleStartDate && now < Date.parse(ticket.saleStartDate)) {
+    return `Mở bán từ ${formatDate(ticket.saleStartDate)}`;
+  }
+  if (ticket?.saleEndDate && now >= Date.parse(ticket.saleEndDate)) return 'Đã hết hạn';
+
+  const remaining = (ticket?.totalQuantity || 0) - (ticket?.soldQuantity || 0);
+  if (remaining <= 0 || ticket?.maxPerOrder === 0) return 'Hết vé';
+  return '';
+};
+
+const getPendingRegistrationStorageKey = (userId, eventSlug) => (
+  userId && eventSlug
+    ? `prestige-planner:pending-registration:${userId}:${encodeURIComponent(eventSlug)}`
+    : null
+);
+
+const hasCompleteRegistration = (registration, expectedTicketCount) => {
+  const tickets = Array.isArray(registration?.tickets) ? registration.tickets : [];
+  const expected = Number(expectedTicketCount);
+  return registration?.status === 'CONFIRMED'
+    && Number.isInteger(expected)
+    && expected > 0
+    && tickets.length === expected
+    && tickets.every(ticket => (
+      ['ACTIVE', 'USED'].includes(ticket.status)
+      && typeof ticket.qrCodeToken === 'string'
+      && ticket.qrCodeToken.trim().length > 0
+      && typeof ticket.qrImageUrl === 'string'
+      && ticket.qrImageUrl.trim().length > 0
+    ));
+};
+
 const EventDetailPage = () => {
   const { id: slug } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const isAttendeeSpace = location.pathname.startsWith('/attendee');
+  const statePendingRegistrationId = location.state?.pendingRegistrationId;
+  const pendingRegistrationStorageKey = getPendingRegistrationStorageKey(user?.id, slug);
+  const [storedPendingRegistrationId, setStoredPendingRegistrationId] = useState(null);
+  const pendingRegistrationId = statePendingRegistrationId || storedPendingRegistrationId;
 
   const [event, setEvent] = useState(null);
   const [schedules, setSchedules] = useState([]);
@@ -93,14 +135,56 @@ const EventDetailPage = () => {
 
   // Registration selection state
   const [selectedTicketTypeId, setSelectedTicketTypeId] = useState('');
-  const [ticketQuantity, setTicketQuantity] = useState(1);
+  const [ticketQuantity, setTicketQuantity] = useState(() => location.state?.booking?.quantity || 1);
   const [notes] = useState('');
-  const [couponCode, setCouponCode] = useState('');
+  const [isSeatModalOpen, setIsSeatModalOpen] = useState(false);
+  const [selectedSeats, setSelectedSeats] = useState([]);
+
+  const handleConfirmSeats = (seats, primaryTier) => {
+    setSelectedSeats(seats);
+    if (seats && seats.length > 0) {
+      setTicketQuantity(seats.length);
+      if (primaryTier?.id) {
+        setSelectedTicketTypeId(primaryTier.id);
+      }
+      setIdempotencyKey(crypto.randomUUID());
+    }
+  };
 
   // Registration Flow Status: 'selection' | 'registering' | 'payment_pending' | 'confirming' | 'success'
   const [flowState, setFlowState] = useState('selection');
   const [activeRegistration, setActiveRegistration] = useState(null);
   const [regError, setRegError] = useState('');
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
+  const [isCancelling, setIsCancelling] = useState(false);
+
+  useEffect(() => {
+    if (!pendingRegistrationStorageKey) return;
+
+    const registrationId = statePendingRegistrationId
+      || localStorage.getItem(pendingRegistrationStorageKey);
+
+    if (registrationId) {
+      setStoredPendingRegistrationId(registrationId);
+      if (statePendingRegistrationId) {
+        localStorage.setItem(pendingRegistrationStorageKey, String(statePendingRegistrationId));
+      }
+    } else {
+      setStoredPendingRegistrationId(null);
+    }
+  }, [pendingRegistrationStorageKey, statePendingRegistrationId]);
+
+  const clearPendingRegistration = () => {
+    if (pendingRegistrationStorageKey) {
+      localStorage.removeItem(pendingRegistrationStorageKey);
+    }
+    setStoredPendingRegistrationId(null);
+    if (location.state?.pendingRegistrationId) {
+      const nextState = { ...location.state };
+      delete nextState.pendingRegistrationId;
+      navigate(location.pathname, { replace: true, state: nextState });
+    }
+  };
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -111,12 +195,43 @@ const EventDetailPage = () => {
         setEvent(eventData);
 
         if (eventData.ticketTypes && eventData.ticketTypes.length > 0) {
-          setSelectedTicketTypeId(eventData.ticketTypes[0].id);
+          const restored = location.state?.booking?.ticketTypeId;
+          const restoredTicket = eventData.ticketTypes.find(ticket => ticket.id === restored);
+          const firstAvailableTicket = eventData.ticketTypes.find(
+            ticket => !getTicketAvailabilityReason(ticket, eventData)
+          );
+          const initialTicket = restoredTicket && !getTicketAvailabilityReason(restoredTicket, eventData)
+            ? restoredTicket
+            : firstAvailableTicket || restoredTicket || eventData.ticketTypes[0];
+          setSelectedTicketTypeId(initialTicket.id);
         }
 
         // Fetch schedules
         const scheduleRes = await eventService.getPublicEventSchedules(eventData.id);
         setSchedules(scheduleRes.data || []);
+
+        if (user?.id) {
+          const registrationsRes = await registrationService.getMyRegistrations();
+          const eventRegistrations = (registrationsRes.data || []).filter(
+            registration => String(registration.eventId) === String(eventData.id)
+              && registration.status === 'PENDING'
+          );
+          const pendingRegistration = eventRegistrations.find(
+            registration => String(registration.id) === String(pendingRegistrationId)
+          ) || eventRegistrations[0];
+
+          if (pendingRegistration) {
+            setActiveRegistration(pendingRegistration);
+            if (pendingRegistrationStorageKey) {
+              localStorage.setItem(pendingRegistrationStorageKey, String(pendingRegistration.id));
+            }
+            setFlowState('payment_pending');
+          } else if (pendingRegistrationId && pendingRegistrationStorageKey) {
+            // The order may have been confirmed or cancelled in another tab.
+            localStorage.removeItem(pendingRegistrationStorageKey);
+            setStoredPendingRegistrationId(null);
+          }
+        }
       } catch (err) {
         console.error('Error loading event detail:', err);
         setError('Không tìm thấy thông tin sự kiện này.');
@@ -137,7 +252,99 @@ const EventDetailPage = () => {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [slug]);
+  }, [
+    slug,
+    location.state?.booking?.ticketTypeId,
+    pendingRegistrationId,
+    pendingRegistrationStorageKey,
+    user?.id
+  ]);
+
+  useEffect(() => {
+    if (!user?.id || !pendingRegistrationId || !event?.id || flowState !== 'payment_pending') {
+      return undefined;
+    }
+
+    let disposed = false;
+    const clearPendingLink = () => {
+      if (pendingRegistrationStorageKey) {
+        localStorage.removeItem(pendingRegistrationStorageKey);
+      }
+      setStoredPendingRegistrationId(null);
+      if (location.state?.pendingRegistrationId) {
+        const nextState = { ...location.state };
+        delete nextState.pendingRegistrationId;
+        navigate(location.pathname, { replace: true, state: nextState });
+      }
+    };
+    const refreshEvent = async () => {
+      try {
+        const eventRes = await eventService.getPublicEventDetail(slug);
+        if (!disposed) setEvent(eventRes.data);
+      } catch (err) {
+        if (!disposed) console.error('Failed to refresh event data:', err);
+      }
+    };
+    const refreshPendingRegistration = async () => {
+      try {
+        const registrationsRes = await registrationService.getMyRegistrations();
+        if (disposed) return;
+
+        const registration = (registrationsRes.data || []).find(
+          item => String(item.id) === String(pendingRegistrationId)
+            && String(item.eventId) === String(event.id)
+        );
+        if (!registration) return;
+
+        const expectedTicketCount = activeRegistration?.tickets?.length || ticketQuantity;
+        if (hasCompleteRegistration(registration, expectedTicketCount)) {
+          setActiveRegistration(registration);
+          clearPendingLink();
+          setFlowState('success');
+          refreshEvent();
+          return;
+        }
+
+        if (registration.status === 'PENDING') {
+          setActiveRegistration(registration);
+          return;
+        }
+
+        if (registration.status === 'CANCELLED' || registration.status === 'REFUNDED') {
+          clearPendingLink();
+          setActiveRegistration(null);
+          setRegError('Đăng ký đã được hủy hoặc hoàn tiền.');
+          setFlowState('selection');
+          return;
+        }
+
+        // Keep polling a confirmed-but-incomplete response until all ticket
+        // artifacts are visible, but never show the success state early.
+        setActiveRegistration(registration);
+        setRegError('Vé hoặc mã QR chưa sẵn sàng. Đang tiếp tục đồng bộ...');
+      } catch (err) {
+        if (!disposed) console.error('Failed to refresh pending registration:', err);
+      }
+    };
+
+    const interval = setInterval(refreshPendingRegistration, 5000);
+    return () => {
+      disposed = true;
+      clearInterval(interval);
+    };
+  }, [
+    activeRegistration?.tickets?.length,
+    event?.id,
+    flowState,
+    location.pathname,
+    location.state,
+    navigate,
+    pendingRegistrationId,
+    pendingRegistrationStorageKey,
+    slug,
+    ticketQuantity,
+    user?.id
+  ]);
 
   const refreshEventData = async () => {
     try {
@@ -162,9 +369,21 @@ const EventDetailPage = () => {
     return selectedTicket.price * ticketQuantity;
   };
 
+  const availability = bookingAvailability(event, selectedTicketTypeId, ticketQuantity);
+  const goToLogin = () => navigate('/login', { state: {
+    from: location.pathname,
+    booking: { ticketTypeId: selectedTicketTypeId, quantity: ticketQuantity },
+  } });
+
   const handleRegister = async () => {
     if (!user) {
-      navigate('/login', { state: { from: location.pathname } });
+      goToLogin();
+      return;
+    }
+
+    const currentAvailability = bookingAvailability(event, selectedTicketTypeId, ticketQuantity);
+    if (!currentAvailability.canRegister) {
+      setRegError(currentAvailability.reason);
       return;
     }
 
@@ -176,6 +395,8 @@ const EventDetailPage = () => {
     try {
       setFlowState('registering');
       setRegError('');
+      const seatInfo = selectedSeats.length > 0 ? `Ghế: ${selectedSeats.map(s => s.id).join(', ')}` : '';
+      const combinedNotes = [notes, seatInfo].filter(Boolean).join(' | ');
       const payload = {
         tickets: [
           {
@@ -183,18 +404,25 @@ const EventDetailPage = () => {
             quantity: ticketQuantity
           }
         ],
-        couponCode: couponCode || undefined,
-        notes: notes || undefined
+        notes: combinedNotes || undefined
       };
-      const response = await registrationService.register(event.id, payload);
+      const response = await registrationService.register(event.id, payload, idempotencyKey);
       const regDetail = response.data;
       setActiveRegistration(regDetail);
 
-      // If registration status is already confirmed or amount is 0, we can complete
-      if (regDetail.status === 'CONFIRMED' || regDetail.finalAmount === 0) {
+      if (hasCompleteRegistration(regDetail, ticketQuantity)) {
+        clearPendingRegistration();
         setFlowState('success');
+        setIdempotencyKey(crypto.randomUUID());
         refreshEventData();
       } else {
+        if (pendingRegistrationStorageKey) {
+          localStorage.setItem(pendingRegistrationStorageKey, String(regDetail.id));
+        }
+        setStoredPendingRegistrationId(String(regDetail.id));
+        if (Number(regDetail.finalAmount) === 0) {
+          setRegError('Đăng ký miễn phí đang được xử lý. Vui lòng hoàn tất để nhận vé.');
+        }
         setFlowState('payment_pending');
       }
     } catch (err) {
@@ -209,9 +437,20 @@ const EventDetailPage = () => {
     try {
       setFlowState('confirming');
       const response = await registrationService.confirmRegistration(event.id, activeRegistration.id);
+      const expectedTicketCount = activeRegistration.tickets?.length || ticketQuantity;
       setActiveRegistration(response.data);
-      setFlowState('success');
-      refreshEventData();
+      if (hasCompleteRegistration(response.data, expectedTicketCount)) {
+        clearPendingRegistration();
+        setFlowState('success');
+        refreshEventData();
+      } else {
+        if (pendingRegistrationStorageKey) {
+          localStorage.setItem(pendingRegistrationStorageKey, String(response.data.id));
+        }
+        setStoredPendingRegistrationId(String(response.data.id));
+        setRegError('Đăng ký chưa hoàn tất: vé hoặc mã QR chưa sẵn sàng. Vui lòng thử lại.');
+        setFlowState('payment_pending');
+      }
     } catch (err) {
       console.error('Payment confirmation failed:', err);
       setRegError(err.response?.data?.error || err.response?.data?.message || 'Không thể xác nhận thanh toán.');
@@ -219,9 +458,27 @@ const EventDetailPage = () => {
     }
   };
 
-  const handleCancelRegistration = () => {
-    setFlowState('selection');
-    setActiveRegistration(null);
+  const handleCancelRegistration = async () => {
+    if (!activeRegistration) {
+      setFlowState('selection');
+      return;
+    }
+
+    try {
+      setIsCancelling(true);
+      setRegError('');
+      await registrationService.cancelRegistration(event.id, activeRegistration.id);
+      clearPendingRegistration();
+      setFlowState('selection');
+      setActiveRegistration(null);
+      setIdempotencyKey(crypto.randomUUID());
+      refreshEventData();
+    } catch (err) {
+      console.error('Registration cancellation failed:', err);
+      setRegError(err.response?.data?.error || err.response?.data?.message || 'Không thể hủy đăng ký. Vui lòng thử lại.');
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   if (loading) {
@@ -274,7 +531,7 @@ const EventDetailPage = () => {
         <div className={isAttendeeSpace ? "mb-12" : "max-w-[1400px] mx-auto px-6 mb-12"}>
           <div className="relative rounded-[40px] overflow-hidden h-[400px] lg:h-[500px] shadow-2xl">
             <img
-              src={event.bannerUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1600"}
+              src={eventService.getEventImageUrl(event) || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1600"}
               alt={event.title}
               className="w-full h-full object-cover"
             />
@@ -410,6 +667,7 @@ const EventDetailPage = () => {
                             (() => {
                               const selectedTicket = event.ticketTypes.find(tt => tt.id === selectedTicketTypeId);
                               const selectedAvailable = selectedTicket ? (selectedTicket.totalQuantity - (selectedTicket.soldQuantity || 0)) : 0;
+                              const selectedTicketReason = getTicketAvailabilityReason(selectedTicket, event);
 
                               return (
                                 <>
@@ -422,15 +680,19 @@ const EventDetailPage = () => {
                                         onChange={(e) => {
                                           setSelectedTicketTypeId(e.target.value);
                                           setTicketQuantity(1);
+                                          setIdempotencyKey(crypto.randomUUID());
                                         }}
                                         disabled={event.isSalesActive === false}
                                         className="w-full bg-slate-50 border border-slate-100 rounded-3xl py-4 px-5 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500/20 appearance-none cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                                       >
-                                        {event.ticketTypes.map(tt => (
-                                          <option key={tt.id} value={tt.id}>
-                                            {tt.name} — {formatPrice(tt.price)}
-                                          </option>
-                                        ))}
+                                        {event.ticketTypes.map(tt => {
+                                          const ticketReason = getTicketAvailabilityReason(tt, event);
+                                          return (
+                                            <option key={tt.id} value={tt.id} disabled={Boolean(ticketReason)}>
+                                              {tt.name} — {formatPrice(tt.price)}{ticketReason ? ` (${ticketReason})` : ''}
+                                            </option>
+                                          );
+                                        })}
                                       </select>
                                       <span className="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                         keyboard_arrow_down
@@ -441,13 +703,13 @@ const EventDetailPage = () => {
                                   {/* Ticket Quantity & Details */}
                                   {selectedTicket && (
                                     <div className="p-5 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                                      <span className="text-xs font-semibold text-slate-500">
-                                        {selectedAvailable <= 10 ? `Chỉ còn ${selectedAvailable} vé` : `Còn trống: ${selectedAvailable} vé`}
+                                      <span className={`text-xs font-semibold ${selectedTicketReason ? 'text-amber-700' : 'text-slate-500'}`}>
+                                        {selectedTicketReason || (selectedAvailable <= 10 ? `Chỉ còn ${selectedAvailable} vé` : `Còn trống: ${selectedAvailable} vé`)}
                                       </span>
 
                                       <div className="flex items-center gap-3">
                                         <button
-                                          onClick={() => setTicketQuantity(prev => Math.max(1, prev - 1))}
+                                          onClick={() => { setTicketQuantity(prev => Math.max(1, prev - 1)); setIdempotencyKey(crypto.randomUUID()); }}
                                           disabled={event.isSalesActive === false}
                                           className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
@@ -455,12 +717,63 @@ const EventDetailPage = () => {
                                         </button>
                                         <span className="font-black text-slate-800 text-sm w-4 text-center">{ticketQuantity}</span>
                                         <button
-                                          onClick={() => setTicketQuantity(prev => Math.min(selectedAvailable, prev + 1))}
-                                          disabled={event.isSalesActive === false}
+                                          onClick={() => { setTicketQuantity(prev => Math.min(availability.limit, prev + 1)); setIdempotencyKey(crypto.randomUUID()); }}
+                                          disabled={event.isSalesActive === false || ticketQuantity >= availability.limit}
                                           className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-600 hover:bg-slate-100 active:scale-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                           +
                                         </button>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Seat Selection Button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setIsSeatModalOpen(true)}
+                                    disabled={event.isSalesActive === false}
+                                    className="w-full py-3.5 px-4 rounded-2xl bg-indigo-50/70 hover:bg-indigo-100/80 border border-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-between transition group active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+                                  >
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="w-7 h-7 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-600">
+                                        <Armchair className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                      </div>
+                                      <span>
+                                        {selectedSeats.length > 0 
+                                          ? `Đã chọn ${selectedSeats.length} chỗ ngồi` 
+                                          : 'Xem sơ đồ & Chọn chỗ ngồi'}
+                                      </span>
+                                    </div>
+                                    <span className="text-[11px] font-semibold text-indigo-600 underline flex items-center gap-1">
+                                      {selectedSeats.length > 0 ? 'Đổi ghế' : 'Mở sơ đồ'}
+                                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                                    </span>
+                                  </button>
+
+                                  {/* Selected seats badges */}
+                                  {selectedSeats.length > 0 && (
+                                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                                          Ghế đã giữ ({selectedSeats.length}):
+                                        </span>
+                                        <button 
+                                          type="button"
+                                          onClick={() => setSelectedSeats([])}
+                                          className="text-[10px] text-slate-400 hover:text-rose-500 font-bold transition"
+                                        >
+                                          Xóa chọn
+                                        </button>
+                                      </div>
+                                      <div className="flex flex-wrap gap-1.5">
+                                        {selectedSeats.map(s => (
+                                          <span 
+                                            key={s.id} 
+                                            className="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold shadow-sm"
+                                          >
+                                            {s.id}
+                                          </span>
+                                        ))}
                                       </div>
                                     </div>
                                   )}
@@ -472,19 +785,7 @@ const EventDetailPage = () => {
                           )}
                         </div>
 
-                        {/* Notes / Coupon (Optional) */}
-                        {event.ticketTypes && event.ticketTypes.length > 0 && (
-                          <div className="space-y-3 mb-6">
-                            <input
-                              type="text"
-                              value={couponCode}
-                              onChange={(e) => setCouponCode(e.target.value)}
-                              placeholder="Mã giảm giá (nếu có)"
-                              disabled={event.isSalesActive === false}
-                              className="w-full bg-slate-50 border border-slate-100 rounded-xl py-3 px-4 text-sm font-semibold outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-75"
-                            />
-                          </div>
-                        )}
+                        {availability.reason && <p className="text-amber-700 text-sm mb-4" role="status">{availability.reason}</p>}
 
                         {regError && <div className="text-red-500 text-xs font-bold mb-4">{regError}</div>}
 
@@ -505,14 +806,14 @@ const EventDetailPage = () => {
                           ) : user ? (
                             <button
                               onClick={handleRegister}
-                              disabled={getTotalAmount() === 0}
+                              disabled={!availability.canRegister}
                               className="flex-1 bg-[#5c46e5] text-white py-4 rounded-2xl font-black text-sm hover:bg-[#4d38da] transition shadow-lg shadow-indigo-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Đăng ký ngay
                             </button>
                           ) : (
                             <button
-                              onClick={() => navigate('/login', { state: { from: location.pathname } })}
+                              onClick={goToLogin}
                               className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-sm hover:bg-slate-800 transition"
                             >
                               Đăng nhập để đăng ký
@@ -592,9 +893,10 @@ const EventDetailPage = () => {
                           </button>
                           <button
                             onClick={handleCancelRegistration}
+                            disabled={isCancelling}
                             className="w-full bg-slate-100 text-slate-600 py-3 rounded-2xl font-black text-sm hover:bg-slate-200 transition"
                           >
-                            Quay lại
+                            {isCancelling ? 'Đang hủy đăng ký...' : 'Quay lại'}
                           </button>
                         </div>
                       </Motion.div>
@@ -634,9 +936,10 @@ const EventDetailPage = () => {
                         {activeRegistration.tickets && activeRegistration.tickets.map((t, idx) => (
                           <div key={t.id || idx} className="border-t border-dashed border-slate-200 pt-6 mt-6">
                             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col items-center">
-                              <img
-                                src={t.qrImageUrl || `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${t.qrCodeToken || t.ticketCode}`}
-                                alt="Vé QR"
+                              <QRCodeSVG
+                                value={t.qrCodeToken || t.ticketCode}
+                                title="Vé QR"
+                                marginSize={4}
                                 className="w-40 h-40 bg-white p-2 rounded-2xl shadow-sm mb-4"
                               />
                               <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Mã vé</p>
@@ -701,6 +1004,17 @@ const EventDetailPage = () => {
       </main>
 
       {!isAttendeeSpace && <LandingFooter />}
+
+      {/* Seat Selection Modal */}
+      <SeatSelectionModal
+        isOpen={isSeatModalOpen}
+        onClose={() => setIsSeatModalOpen(false)}
+        event={event}
+        selectedTicketTypeId={selectedTicketTypeId}
+        currentSelectedSeats={selectedSeats}
+        onConfirmSeats={handleConfirmSeats}
+        maxSeatsAllowed={availability.limit || 6}
+      />
     </div>
   );
 };

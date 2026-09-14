@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminEventService } from '../services/adminEventService';
+import { eventService } from '../services/eventService';
 import {
   ChevronRight,
   Search,
   Filter,
   MoreVertical,
   CheckCircle2,
+  XCircle,
   Ban,
   Eye,
   RotateCcw,
@@ -94,6 +96,7 @@ const GlobalEventsPage = () => {
   // Selection states for bulk actions
   const [selectedIds, setSelectedIds] = useState([]);
   const [processingIds, setProcessingIds] = useState([]);
+  const [actionError, setActionError] = useState('');
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -105,16 +108,23 @@ const GlobalEventsPage = () => {
       const fetchedCategories = Array.isArray(payload) ? null : payload?.categories;
       const fetchedPagination = Array.isArray(payload) ? null : payload?.pagination;
       const mappedEvents = fetchedEvents.map((event) => {
+        const hasEnded = event.endDate && Date.parse(event.endDate) <= Date.now();
+        const hasStarted = event.startDate && Date.parse(event.startDate) <= Date.now();
+        const isPublishedStatus = ['PUBLISHED', 'ON_SALE', 'ONGOING', 'SOLD_OUT'].includes(event.status);
+        const isApprovedDraft = event.status === 'DRAFT' && event.isApproved;
         const statusText = event.isPendingApproval ? 'Chờ phê duyệt'
-          : event.status === 'PUBLISHED' || event.status === 'ON_SALE' ? 'Đang diễn ra'
-            : event.status === 'CANCELLED' ? 'Bị đình chỉ' : 'Đã hoàn tất';
+          : event.status === 'CANCELLED' ? 'Bị đình chỉ'
+            : event.status === 'COMPLETED' || hasEnded ? 'Đã hoàn tất'
+              : (isPublishedStatus || isApprovedDraft) && hasStarted ? 'Đang diễn ra'
+                : (isPublishedStatus || isApprovedDraft) ? 'Sắp diễn ra'
+                  : 'Đã hoàn tất';
         const joined = Number(event.currentAttendees || 0);
         const total = Number(event.maxAttendees || 0);
         return {
           dbId: event.id,
           id: event.slug || event.id,
           name: event.title,
-          image: event.bannerUrl || event.thumbnailUrl || 'https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?auto=format&fit=crop&q=80&w=200',
+          image: eventService.getEventImageUrl(event) || 'https://images.unsplash.com/photo-1540575861501-7ad05823c9f5?auto=format&fit=crop&q=80&w=200',
           organizer: { name: event.organizerName || '—', role: 'Verified', avatar: 'https://ui-avatars.com/api/?name=Organizer' },
           status: { text: statusText, color: statusText === 'Bị đình chỉ' ? 'bg-red-50 text-red-600' : statusText === 'Chờ phê duyệt' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600' },
           joined: { current: joined, total, percent: total ? Math.round((joined / total) * 100) : 0 },
@@ -123,7 +133,12 @@ const GlobalEventsPage = () => {
         };
       });
       const search = appliedFilters.search.trim().toLowerCase();
-      const filteredEvents = mappedEvents.filter((event) => !search || `${event.name} ${event.id}`.toLowerCase().includes(search));
+      const filteredEvents = mappedEvents.filter((event) => {
+        const matchesSearch = !search || `${event.name} ${event.id}`.toLowerCase().includes(search);
+        const matchesStatus = appliedFilters.status === 'Tất cả trạng thái'
+          || event.status.text === appliedFilters.status;
+        return matchesSearch && matchesStatus;
+      });
       setEvents(filteredEvents.slice((currentPage - 1) * 10, currentPage * 10));
       setStats((current) => ({ ...current, totalEvents: mappedEvents.length, ongoingEvents: mappedEvents.filter(event => event.status.text === 'Đang diễn ra').length, pendingEvents: mappedEvents.filter(event => event.status.text === 'Chờ phê duyệt').length }));
       if (fetchedStats) setStats(fetchedStats);
@@ -199,11 +214,30 @@ const GlobalEventsPage = () => {
     }
   };
 
+  const handleRejectEvent = async (dbId) => {
+    if (processingIds.includes(dbId)) return;
+    setActionError('');
+    setProcessingIds(prev => [...prev, dbId]);
+    try {
+      await adminEventService.reject(dbId);
+      await fetchEvents();
+    } catch (error) {
+      console.error('Lỗi khi từ chối sự kiện', error);
+      setActionError(error.apiError?.message || error.response?.data?.message || 'Không thể từ chối sự kiện');
+    } finally {
+      setProcessingIds(prev => prev.filter(id => id !== dbId));
+    }
+  };
+
   const handleBulkApprove = async () => {
     if (selectedIds.length === 0) return;
-    if (window.confirm(`Bạn có chắc chắn muốn phê duyệt ${selectedIds.length} sự kiện đã chọn?`)) {
+    const pendingIds = events
+      .filter(event => selectedIds.includes(event.dbId) && event.status.text === 'Chờ phê duyệt')
+      .map(event => event.dbId);
+    if (pendingIds.length === 0) return;
+    if (window.confirm(`Bạn có chắc chắn muốn phê duyệt ${pendingIds.length} sự kiện đã chọn?`)) {
       try {
-        await adminEventService.bulkApprove(selectedIds);
+        await adminEventService.bulkApprove(pendingIds);
         setSelectedIds([]);
         fetchEvents();
       } catch (error) {
@@ -214,9 +248,14 @@ const GlobalEventsPage = () => {
 
   const handleBulkSuspend = async () => {
     if (selectedIds.length === 0) return;
-    if (window.confirm(`Bạn có chắc chắn muốn đình chỉ ${selectedIds.length} sự kiện đã chọn?`)) {
+    const actionableIds = events
+      .filter(event => selectedIds.includes(event.dbId)
+        && ['Chờ phê duyệt', 'Đang diễn ra', 'Sắp diễn ra'].includes(event.status.text))
+      .map(event => event.dbId);
+    if (actionableIds.length === 0) return;
+    if (window.confirm(`Bạn có chắc chắn muốn xử lý ${actionableIds.length} sự kiện đã chọn?`)) {
       try {
-        await adminEventService.bulkSuspend(selectedIds);
+        await adminEventService.bulkSuspend(actionableIds);
         setSelectedIds([]);
         fetchEvents();
       } catch (error) {
@@ -335,7 +374,7 @@ const GlobalEventsPage = () => {
           label="Trạng thái báo cáo"
           value={selectedStatus}
           onChange={setSelectedStatus}
-          options={["Tất cả trạng thái", "Đang diễn ra", "Chờ phê duyệt", "Bị đình chỉ"]}
+          options={["Tất cả trạng thái", "Sắp diễn ra", "Đang diễn ra", "Đã hoàn tất", "Chờ phê duyệt", "Bị đình chỉ"]}
         />
 
         <button
@@ -346,6 +385,12 @@ const GlobalEventsPage = () => {
           Áp dụng lọc
         </button>
       </div>
+
+      {actionError && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {actionError}
+        </div>
+      )}
 
       {/* Main Table Content */}
       <div className="bg-white rounded-[32px] border border-border-color shadow-sm overflow-hidden">
@@ -380,7 +425,7 @@ const GlobalEventsPage = () => {
               }`}
             >
               <Ban className="w-4 h-4" />
-              Đình chỉ hàng loạt
+              Từ chối/đình chỉ
             </button>
           </div>
         </div>
@@ -489,7 +534,17 @@ const GlobalEventsPage = () => {
                             <CheckCircle2 className="w-4 h-4" />
                           </button>
                         )}
-                        {row.status.text !== 'Bị đình chỉ' && (
+                        {row.status.text === 'Chờ phê duyệt' && (
+                          <button
+                            disabled={processingIds.includes(row.dbId)}
+                            onClick={() => handleRejectEvent(row.dbId)}
+                            className="p-2.5 rounded-xl hover:bg-red-50 text-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Từ chối sự kiện"
+                          >
+                            <XCircle className="w-4 h-4" />
+                          </button>
+                        )}
+                        {['Đang diễn ra', 'Sắp diễn ra'].includes(row.status.text) && (
                           <button
                             disabled={processingIds.includes(row.dbId)}
                             onClick={() => handleSuspendEvent(row.dbId, row.name)}

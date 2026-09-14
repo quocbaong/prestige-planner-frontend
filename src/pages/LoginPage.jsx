@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Check, Loader2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { bookingReturnPath } from '../lib/booking';
 import { useAuth } from '../stores/useAuth';
 import ForgotPasswordModal from '../components/auth/ForgotPasswordModal';
 import logo from '../assets/logo.png';
@@ -18,13 +19,6 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    if (params.get('demo') === 'vendor') {
-      handleVendorDemoLogin();
-    }
-  }, [location.search]);
-
   const handleVendorDemoLogin = () => {
     const vendorUser = {
       id: 'vendor-demo',
@@ -38,6 +32,13 @@ const LoginPage = () => {
     navigate('/vendor/dashboard');
   };
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('demo') === 'vendor') {
+      handleVendorDemoLogin();
+    }
+  }, [location.search]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -45,10 +46,15 @@ const LoginPage = () => {
 
     try {
       const user = await login(email, password);
-      if (user.role === 'ADMIN') {
+      const returnTo = bookingReturnPath(location.state?.from);
+      if (returnTo && (!returnTo.startsWith('/attendee/') || user.role === 'ATTENDEE')) {
+        navigate(returnTo, { replace: true, state: { booking: location.state?.booking } });
+      } else if (user.role === 'ADMIN') {
         navigate('/admin/dashboard');
       } else if (user.role === 'ORGANIZER') {
         navigate('/organizer/dashboard');
+      } else if (user.role === 'VENDOR') {
+        navigate('/vendor/dashboard');
       } else {
         navigate('/attendee/dashboard');
       }

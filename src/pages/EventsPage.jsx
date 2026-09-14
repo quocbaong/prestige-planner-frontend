@@ -152,7 +152,7 @@ const FeaturedEvents = () => {
             onClick={() => navigate(`/events/${mainEvent.slug}`)}
           >
             <img
-              src={mainEvent.bannerUrl || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1200&h=800"}
+              src={eventService.getEventImageUrl(mainEvent) || "https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1200&h=800"}
               alt={mainEvent.title}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
@@ -186,7 +186,7 @@ const FeaturedEvents = () => {
               onClick={() => navigate(`/events/${event.slug}`)}
             >
               <img
-                src={event.thumbnailUrl || event.bannerUrl || "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=600&h=400"}
+                src={eventService.getEventImageUrl(event) || "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=600&h=400"}
                 alt={event.title}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -291,7 +291,7 @@ const DiscoverEvents = ({ searchQuery = "" }) => {
               >
                 <div className="relative h-[220px] overflow-hidden">
                   <img
-                    src={event.thumbnailUrl || event.bannerUrl || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=600&h=400"}
+                    src={eventService.getEventImageUrl(event) || "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&q=80&w=600&h=400"}
                     alt={event.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                   />

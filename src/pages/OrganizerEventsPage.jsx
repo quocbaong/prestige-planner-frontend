@@ -33,7 +33,11 @@ const toLocalISOString = (dateObj) => {
 };
 
 const mapEventFromApi = (event) => {
-  const statusInfo = STATUS_MAP[event.status] || { label: event.status, color: 'slate', pulse: false };
+  const isEnded = event.endDate && Date.parse(event.endDate) <= Date.now();
+  const effectiveStatus = isEnded && ['PUBLISHED', 'ON_SALE', 'SOLD_OUT', 'ONGOING'].includes(event.status)
+    ? 'COMPLETED'
+    : event.status;
+  const statusInfo = STATUS_MAP[effectiveStatus] || { label: effectiveStatus, color: 'slate', pulse: false };
   const location = [event.venue, event.address, event.city].filter(Boolean).join(', ');
   const date = event.startDate ? new Date(event.startDate) : null;
   const attendance = event.maxAttendees
@@ -48,7 +52,7 @@ const mapEventFromApi = (event) => {
     date: date ? `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}` : '--',
     dateObj: date,
     status: statusInfo.label,
-    rawStatus: event.status,
+    rawStatus: effectiveStatus,
     statusColor: statusInfo.color,
     statusPulse: statusInfo.pulse,
     isApproved: event.isApproved,
@@ -61,10 +65,9 @@ const mapEventFromApi = (event) => {
     revenue: event.revenue !== undefined && event.revenue !== null
       ? new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(event.revenue)
       : '—',
-    image: event.bannerUrl || 'https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?w=400',
+    image: eventService.getEventImageUrl(event) || 'https://images.unsplash.com/photo-1540575861501-7cf05a4b125a?w=400',
     attendees: [],
     description: event.description,
-    shortDesc: event.shortDesc,
     category: event.category,
     venue: event.venue,
     address: event.address,
@@ -74,7 +77,6 @@ const mapEventFromApi = (event) => {
     startDate: event.startDate,
     endDate: event.endDate,
     registrationDeadline: event.registrationDeadline,
-    tags: event.tags,
     thumbnailUrl: event.thumbnailUrl,
     bannerUrl: event.bannerUrl,
     ticketTypes: event.ticketTypes,
@@ -124,9 +126,17 @@ const OrganizerEventsPage = () => {
   });
 
   const [createForm, setCreateForm] = useState({
-    title: '', description: '', shortDesc: '', venue: '', address: '', city: '',
-    startDate: '', endDate: '', bannerUrl: '', maxAttendees: '', category: 'OTHER',
+    title: '', description: '', venue: '', address: '', city: '',
+    startDate: '', endDate: '', registrationDeadline: '', timezone: '',
+    latitude: '', longitude: '', bannerUrl: '',
+    maxAttendees: '', category: 'OTHER',
   });
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState('');
+
+  useEffect(() => () => {
+    if (thumbnailPreviewUrl) URL.revokeObjectURL(thumbnailPreviewUrl);
+  }, [thumbnailPreviewUrl]);
 
   const showNotification = (message, type = 'success') => {
     setNotification({ message, type });
@@ -161,11 +171,24 @@ const OrganizerEventsPage = () => {
   const itemsPerPage = 7;
 
   const handleCreate = () => {
-    setCreateForm({
-      title: '', description: '', shortDesc: '', venue: '', address: '', city: '',
-      startDate: '', endDate: '', bannerUrl: '', maxAttendees: '', category: 'OTHER',
-    });
-    setModalConfig({ isOpen: true, type: 'create', event: null });
+    navigate('/organizer/events/create');
+  };
+
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showNotification('Thumbnail phải là một tệp hình ảnh', 'error');
+      e.target.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification('Thumbnail không được vượt quá 5MB', 'error');
+      e.target.value = '';
+      return;
+    }
+    setThumbnailFile(file);
+    setThumbnailPreviewUrl(URL.createObjectURL(file));
   };
 
   const handleEdit = (event) => {
@@ -355,8 +378,6 @@ const OrganizerEventsPage = () => {
       if (title) payload.title = title;
       const description = form.description?.value;
       if (description) payload.description = description;
-      const shortDesc = form.shortDesc?.value;
-      if (shortDesc) payload.shortDesc = shortDesc;
       const category = form.category?.value;
       if (category) payload.category = category;
       const venue = form.venue?.value;
@@ -382,18 +403,40 @@ const OrganizerEventsPage = () => {
 
   const saveCreate = async (e) => {
     e.preventDefault();
+    // Keep the legacy modal from bypassing the shared three-step creation flow.
+    navigate('/organizer/events/create');
+    return;
+
+    /*
+    const address = createForm.address.trim();
+    if (!address) {
+      showNotification('Vui lòng nhập địa chỉ chi tiết', 'error');
+      return;
+    }
+
     try {
+      let uploadedThumbnailUrl;
+      if (thumbnailFile) {
+        const uploadResponse = await eventService.uploadEventMedia(thumbnailFile);
+        uploadedThumbnailUrl = eventService.resolveMediaUrl(uploadResponse.data.url);
+      }
       const payload = {
         title: createForm.title,
         description: createForm.description,
-        shortDesc: createForm.shortDesc || undefined,
         category: createForm.category || 'OTHER',
         venue: createForm.venue,
-        address: createForm.address,
+        address,
         city: createForm.city,
         startDate: new Date(createForm.startDate).toISOString(),
         endDate: new Date(createForm.endDate).toISOString(),
+        registrationDeadline: createForm.registrationDeadline
+          ? new Date(createForm.registrationDeadline).toISOString()
+          : undefined,
+        timezone: createForm.timezone.trim() || undefined,
+        latitude: createForm.latitude !== '' ? Number(createForm.latitude) : undefined,
+        longitude: createForm.longitude !== '' ? Number(createForm.longitude) : undefined,
         bannerUrl: createForm.bannerUrl || undefined,
+        thumbnailUrl: uploadedThumbnailUrl || createForm.bannerUrl || undefined,
         maxAttendees: createForm.maxAttendees ? parseInt(createForm.maxAttendees) : undefined,
       };
       const res = await eventService.createEvent(payload);
@@ -404,6 +447,7 @@ const OrganizerEventsPage = () => {
       const msg = err.response?.data?.error || 'Không thể tạo sự kiện';
       showNotification(msg, 'error');
     }
+    */
   };
 
   const filteredEvents = events
@@ -525,7 +569,7 @@ const OrganizerEventsPage = () => {
 
       {/* Premium Modal System */}
       <AnimatePresence>
-        {modalConfig.isOpen && (
+        {modalConfig.isOpen && modalConfig.type !== 'create' && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6">
             <Motion.div
               initial={{ opacity: 0 }}
@@ -596,15 +640,6 @@ const OrganizerEventsPage = () => {
                         />
                       </div>
                       <div className="space-y-2 col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Mô tả ngắn *</label>
-                        <input
-                          required
-                          value={createForm.shortDesc}
-                          onChange={e => setCreateForm(p => ({ ...p, shortDesc: e.target.value }))}
-                          className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
-                        />
-                      </div>
-                      <div className="space-y-2 col-span-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Danh mục *</label>
                         <select
                           required
@@ -642,8 +677,9 @@ const OrganizerEventsPage = () => {
                         />
                       </div>
                       <div className="space-y-2 col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Địa chỉ chi tiết</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Địa chỉ chi tiết *</label>
                         <input
+                          required
                           value={createForm.address}
                           onChange={e => setCreateForm(p => ({ ...p, address: e.target.value }))}
                           className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
@@ -669,6 +705,15 @@ const OrganizerEventsPage = () => {
                           className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
                         />
                       </div>
+                      <div className="space-y-2 col-span-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Hạn chót đăng ký vé (Không bắt buộc)</label>
+                        <input
+                          type="datetime-local"
+                          value={createForm.registrationDeadline}
+                          onChange={e => setCreateForm(p => ({ ...p, registrationDeadline: e.target.value }))}
+                          className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
+                        />
+                      </div>
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Số lượng tối đa</label>
                         <input
@@ -681,8 +726,59 @@ const OrganizerEventsPage = () => {
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">URL Banner</label>
                         <input
+                          type="url"
                           value={createForm.bannerUrl}
                           onChange={e => setCreateForm(p => ({ ...p, bannerUrl: e.target.value }))}
+                          className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Hình ảnh Thumbnail</label>
+                        <input
+                          type="file"
+                          name="thumbnailFile"
+                          accept="image/*"
+                          onChange={handleThumbnailChange}
+                          className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
+                        />
+                        {thumbnailFile && (
+                          <p className="text-xs text-slate-500 font-medium">Đã chọn: {thumbnailFile.name}</p>
+                        )}
+                      </div>
+                      {thumbnailPreviewUrl && (
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1 block">Xem trước Thumbnail</span>
+                          <img src={thumbnailPreviewUrl} alt="Thumbnail Preview" className="w-full h-32 object-cover rounded-2xl border border-slate-100" />
+                        </div>
+                      )}
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Múi giờ</label>
+                        <input
+                          value={createForm.timezone}
+                          onChange={e => setCreateForm(p => ({ ...p, timezone: e.target.value }))}
+                          placeholder="Asia/Ho_Chi_Minh"
+                          className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Vĩ độ</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={createForm.latitude}
+                          onChange={e => setCreateForm(p => ({ ...p, latitude: e.target.value }))}
+                          placeholder="21.0285"
+                          className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Kinh độ</label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={createForm.longitude}
+                          onChange={e => setCreateForm(p => ({ ...p, longitude: e.target.value }))}
+                          placeholder="105.8342"
                           className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700"
                         />
                       </div>
@@ -705,10 +801,6 @@ const OrganizerEventsPage = () => {
                       <div className="space-y-2 col-span-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Mô tả</label>
                         <textarea name="description" rows={3} defaultValue={modalConfig.event?.description} className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700 resize-none" />
-                      </div>
-                      <div className="space-y-2 col-span-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Mô tả ngắn</label>
-                        <input name="shortDesc" defaultValue={modalConfig.event?.shortDesc} className="w-full px-5 py-3 rounded-2xl border border-slate-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-slate-700" />
                       </div>
                       <div className="space-y-2 col-span-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Danh mục</label>
