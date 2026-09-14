@@ -8,11 +8,9 @@ import {
   Bot,
   BarChart3,
   Settings,
-  LogOut,
   Sparkles,
 } from 'lucide-react';
 import logo from '../../../assets/logo.png';
-import { useAuth } from '../../../stores/useAuth';
 
 const SidebarItem = ({ icon: Icon, label, active = false, onClick }) => (
   <button
@@ -31,12 +29,6 @@ const SidebarItem = ({ icon: Icon, label, active = false, onClick }) => (
 const VendorSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout } = useAuth();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Tổng quan', path: '/vendor/dashboard' },
@@ -82,13 +74,6 @@ const VendorSidebar = () => {
         <p className="text-sm text-slate-600">Gợi ý tối ưu dịch vụ và tăng tỷ lệ booking hôm nay.</p>
       </div>
 
-      <div className="mt-auto pt-6">
-        <SidebarItem
-          icon={LogOut}
-          label="Đăng xuất"
-          onClick={handleLogout}
-        />
-      </div>
     </aside>
   );
 };
